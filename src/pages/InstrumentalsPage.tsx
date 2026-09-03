@@ -193,7 +193,7 @@ export function InstrumentalsPage({
                     <Edit className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(inst.id, inst.title)}
+                    onClick={() => handleDelete(inst.id, inst.title || inst.name)}
                     className="p-1 text-zinc-600 hover:text-rose-400"
                     title="Excluir"
                   >
@@ -203,23 +203,25 @@ export function InstrumentalsPage({
               </div>
 
               <h3 className="text-base font-bold text-white mb-0.5">
-                {inst.title}
+                {inst.title || inst.name}
               </h3>
               <p className="text-xs text-zinc-400 font-medium mb-3">
                 {inst.style} • <span className="text-amber-300">{inst.bpm} BPM</span> •{' '}
                 <span className="text-sky-300">{inst.key}</span>
               </p>
 
-              <div className="flex flex-wrap gap-1 mb-3">
-                {inst.tags.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+              {inst.tags && inst.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {inst.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="text-[10px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {inst.notes && (
                 <p className="text-xs text-zinc-400 leading-relaxed bg-zinc-950/60 p-2.5 rounded-lg border border-zinc-850">

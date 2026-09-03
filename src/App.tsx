@@ -33,7 +33,16 @@ import {
   Instrumental,
   JournalEntry,
 } from './types';
-import { INITIAL_CHAINS, INITIAL_SETTINGS } from './data/initialData';
+import {
+  INITIAL_CHAINS,
+  INITIAL_SETTINGS,
+  INITIAL_PROJECTS,
+  INITIAL_ARTISTS,
+  INITIAL_SESSIONS,
+  INITIAL_PLUGINS,
+  INITIAL_INSTRUMENTALS,
+  INITIAL_JOURNAL,
+} from './data/initialData';
 import { X, Plus, GitMerge } from 'lucide-react';
 
 function StudioApp() {
@@ -55,13 +64,13 @@ function StudioApp() {
 
   // Entities in memory
   const [settings, setSettings] = useState<StudioSettings>(INITIAL_SETTINGS);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [artists, setArtists] = useState<Artist[]>([]);
-  const [sessions, setSessions] = useState<Session[]>([]);
+  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [artists, setArtists] = useState<Artist[]>(INITIAL_ARTISTS);
+  const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
   const [chains, setChains] = useState<ProcessingChain[]>(INITIAL_CHAINS);
-  const [plugins, setPlugins] = useState<PluginItem[]>([]);
-  const [instrumentals, setInstrumentals] = useState<Instrumental[]>([]);
-  const [journal, setJournal] = useState<JournalEntry[]>([]);
+  const [plugins, setPlugins] = useState<PluginItem[]>(INITIAL_PLUGINS);
+  const [instrumentals, setInstrumentals] = useState<Instrumental[]>(INITIAL_INSTRUMENTALS);
+  const [journal, setJournal] = useState<JournalEntry[]>(INITIAL_JOURNAL);
   const [isLoading, setIsLoading] = useState(true);
 
   // New Chain Modal Form State
@@ -85,16 +94,16 @@ function StudioApp() {
         studioDB.getJournal(),
       ]);
 
-      setSettings(s);
-      setProjects(p);
-      setArtists(a);
-      setSessions(sess);
-      setChains(c);
-      setPlugins(pl);
-      setInstrumentals(inst);
-      setJournal(j);
+      if (s) setSettings(s);
+      if (p && p.length > 0) setProjects(p);
+      if (a && a.length > 0) setArtists(a);
+      if (sess && sess.length > 0) setSessions(sess);
+      if (c && c.length > 0) setChains(c);
+      if (pl && pl.length > 0) setPlugins(pl);
+      if (inst && inst.length > 0) setInstrumentals(inst);
+      if (j && j.length > 0) setJournal(j);
 
-      if (!s.onboarded) {
+      if (s && !s.onboarded) {
         setIsOnboardingOpen(true);
       }
     } catch (err) {
@@ -413,7 +422,7 @@ function StudioApp() {
           />
         )}
 
-        {currentPage === 'knowledge' && <KnowledgePage />}
+        {(currentPage === 'knowledge' || currentPage === 'learning') && <KnowledgePage />}
 
         {currentPage === 'settings' && (
           <SettingsPage

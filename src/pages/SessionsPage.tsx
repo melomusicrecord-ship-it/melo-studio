@@ -68,7 +68,7 @@ export function SessionsPage({
   const [formObjective, setFormObjective] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
-  const activeSession = sessions.find((s) => s.id === selectedSessionId) || sessions[0];
+  const activeSession = sessions.find((s) => s.id === selectedSessionId) || sessions[0] || null;
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {

@@ -85,12 +85,12 @@ export function ChainsPage({
     });
   }, [chains, subFilter]);
 
-  const activeChain = chains.find((c) => c.id === selectedChainId) || chains[0];
-  const compareChainB = chains.find((c) => c.id === compareChainIdB);
+  const activeChain = chains.find((c) => c.id === selectedChainId) || chains[0] || null;
+  const compareChainB = chains.find((c) => c.id === compareChainIdB) || null;
 
   // Reorder steps
   const handleMoveStep = async (stepIndex: number, direction: 'up' | 'down') => {
-    if (!activeChain) return;
+    if (!activeChain || !activeChain.steps) return;
     const targetIndex = direction === 'up' ? stepIndex - 1 : stepIndex + 1;
     if (targetIndex < 0 || targetIndex >= activeChain.steps.length) return;
 
@@ -128,7 +128,7 @@ export function ChainsPage({
       name: `${chain.name} (Cópia)`,
       isCustom: true,
       updatedAt: new Date().toISOString().split('T')[0],
-      steps: chain.steps.map((s) => ({ ...s, id: 'step-' + Math.random().toString(36).substr(2, 6) })),
+      steps: (chain.steps || []).map((s) => ({ ...s, id: 'step-' + Math.random().toString(36).substr(2, 6) })),
     };
     await onSaveChain(duplicated);
     setSelectedChainId(duplicated.id);
@@ -141,7 +141,7 @@ export function ChainsPage({
     txt += `Alvo: ${chain.target} | Estilo: ${chain.style} | Nível: ${chain.level}\n`;
     txt += `Objetivo: ${chain.goal}\n\n`;
     txt += `FLUXO DE PROCESSAMENTO:\n`;
-    chain.steps.forEach((s) => {
+    (chain.steps || []).forEach((s) => {
       txt += `\n[${String(s.order).padStart(2, '0')}] ${s.pluginName} (${s.manufacturer}) - ${s.objective}\n`;
       txt += `   • Por quê: ${s.whyIsItHere}\n`;
       txt += `   • O que ouvir: ${s.whatToHear}\n`;
@@ -173,7 +173,7 @@ export function ChainsPage({
   // Save Step Note
   const handleSaveStepNote = async (stepId: string) => {
     if (!activeChain) return;
-    const newSteps = activeChain.steps.map((s) =>
+    const newSteps = (activeChain.steps || []).map((s) =>
       s.id === stepId ? { ...s, myNote: tempNote } : s
     );
     await onSaveChain({ ...activeChain, steps: newSteps });
@@ -435,11 +435,11 @@ export function ChainsPage({
                     <span className="font-bold text-emerald-400 flex items-center gap-1.5">
                       <GraduationCap className="w-4 h-4" />
                       <span>
-                        Passo {learnStepIndex + 1} de {activeChain.steps.length}
+                        Passo {learnStepIndex + 1} de {(activeChain.steps || []).length}
                       </span>
                     </span>
                     <div className="flex gap-1">
-                      {activeChain.steps.map((_, i) => (
+                      {(activeChain.steps || []).map((_, i) => (
                         <div
                           key={i}
                           onClick={() => setLearnStepIndex(i)}
@@ -571,13 +571,13 @@ export function ChainsPage({
                 <div className="space-y-3">
                   <div className="text-[11px] uppercase font-bold tracking-wider text-zinc-500 flex items-center justify-between">
                     <span>Fluxo da Chain Vertical (Sinal de Áudio de Cima para Baixo)</span>
-                    <span>{activeChain.steps.length} plugins em série</span>
+                    <span>{(activeChain.steps || []).length} plugins em série</span>
                   </div>
 
-                  {activeChain.steps.map((step, idx) => (
+                  {(activeChain.steps || []).map((step, idx) => (
                     <div key={step.id} className="relative group">
                       {/* Vertical connector line */}
-                      {idx < activeChain.steps.length - 1 && (
+                      {idx < (activeChain.steps || []).length - 1 && (
                         <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-zinc-800 group-hover:bg-amber-500/40 transition-colors z-0" />
                       )}
 

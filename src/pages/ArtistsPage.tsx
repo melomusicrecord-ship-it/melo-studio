@@ -200,7 +200,10 @@ export function ArtistsPage({
               )}
 
               <div className="flex flex-wrap gap-1 mb-3">
-                {artist.mainStyles.map((st, i) => (
+                {(
+                  artist.mainStyles ||
+                  (artist.style ? artist.style.split(/[/,]/).map((s) => s.trim()).filter(Boolean) : [])
+                ).map((st, i) => (
                   <span
                     key={i}
                     className="text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-900 text-amber-300/90 border border-zinc-800"

@@ -44,7 +44,8 @@ export function DiagnosisPage({ subFilter }: DiagnosisPageProps) {
   const activeIssue =
     INITIAL_DIAGNOSIS_ISSUES.find((i) => i.id === selectedIssueId) ||
     filteredIssues[0] ||
-    INITIAL_DIAGNOSIS_ISSUES[0];
+    INITIAL_DIAGNOSIS_ISSUES[0] ||
+    null;
 
   return (
     <div className="space-y-6">
@@ -137,7 +138,7 @@ export function DiagnosisPage({ subFilter }: DiagnosisPageProps) {
                   <span>Sintomas Comuns no Estúdio:</span>
                 </span>
                 <ul className="space-y-1 text-xs text-zinc-300 list-disc list-inside">
-                  {activeIssue.symptoms.map((sym, idx) => (
+                  {(activeIssue.symptoms || []).map((sym, idx) => (
                     <li key={idx}>{sym}</li>
                   ))}
                 </ul>
@@ -150,7 +151,7 @@ export function DiagnosisPage({ subFilter }: DiagnosisPageProps) {
                   <span>Possíveis Causas (Verifica na Tua Gravação):</span>
                 </span>
                 <div className="space-y-2 text-xs text-zinc-300 leading-relaxed">
-                  {activeIssue.possibleCauses.map((cause, idx) => (
+                  {(activeIssue.possibleCauses || []).map((cause, idx) => (
                     <div key={idx} className="flex items-start gap-2 bg-zinc-900/60 p-2 rounded-lg border border-zinc-850">
                       <span className="text-sky-400 font-bold">•</span>
                       <span>{cause}</span>
@@ -177,7 +178,7 @@ export function DiagnosisPage({ subFilter }: DiagnosisPageProps) {
                   <span>Ferramentas Que Podem Ajudar:</span>
                 </span>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {activeIssue.suggestedTools.map((tool, idx) => (
+                  {(activeIssue.suggestedTools || []).map((tool, idx) => (
                     <span
                       key={idx}
                       className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 font-medium"

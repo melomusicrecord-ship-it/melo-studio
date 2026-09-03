@@ -63,7 +63,7 @@ export function ProjectsPage({
   const [formNotes, setFormNotes] = useState('');
   const [formProgress, setFormProgress] = useState(25);
 
-  const activeProject = projects.find((p) => p.id === selectedProjectId);
+  const activeProject = projects.find((p) => p.id === selectedProjectId) || projects[0] || null;
 
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {

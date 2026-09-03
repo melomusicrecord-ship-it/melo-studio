@@ -48,6 +48,7 @@ class StudioDB {
   private settingsFallback: StudioSettings = INITIAL_SETTINGS;
 
   constructor() {
+    this.seedFallbackMemory();
     this.initFallback();
   }
 
@@ -111,15 +112,25 @@ class StudioDB {
   public async initializeDatabase(): Promise<void> {
     try {
       const db = await this.getDB();
-      const tx = db.transaction(['settings', 'chains', 'plugins'], 'readonly');
-      const settingsStore = tx.objectStore('settings');
-      const request = settingsStore.get('current');
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(['settings', 'chains', 'plugins'], 'readonly');
+        const settingsStore = tx.objectStore('settings');
+        const request = settingsStore.get('current');
 
-      request.onsuccess = async () => {
-        if (!request.result) {
-          await this.seedInitialData();
-        }
-      };
+        request.onsuccess = async () => {
+          if (!request.result) {
+            try {
+              await this.seedInitialData();
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            resolve();
+          }
+        };
+        request.onerror = () => reject(request.error);
+      });
     } catch (error) {
       console.warn('Fallback: inicializando memória local');
       this.seedFallbackMemory();
@@ -187,7 +198,7 @@ class StudioDB {
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
         const req = store.getAll();
-        req.onsuccess = () => resolve(req.result as T[]);
+        req.onsuccess = () => resolve((req.result as T[]) || []);
         req.onerror = () => reject(req.error);
       });
     } catch (e) {
