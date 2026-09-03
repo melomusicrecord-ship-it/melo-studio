@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="128" fill="#09090b" />
+  <rect x="24" y="24" width="464" height="464" rx="104" stroke="#f59e0b" stroke-width="8" stroke-opacity="0.25" />
+  <!-- Studio VU / Waveform / Knobs aesthetic -->
+  <circle cx="256" cy="256" r="160" fill="#18181b" stroke="#27272a" stroke-width="6" />
+  <circle cx="256" cy="256" r="110" fill="#121215" stroke="#f59e0b" stroke-width="4" stroke-dasharray="8 8" />
+  
+  <!-- Audio bars in amber & gold -->
+  <rect x="180" y="220" width="16" height="72" rx="8" fill="#f59e0b" />
+  <rect x="210" y="180" width="16" height="152" rx="8" fill="#fbbf24" />
+  <rect x="240" y="140" width="16" height="232" rx="8" fill="#f59e0b" />
+  <rect x="270" y="160" width="16" height="192" rx="8" fill="#fbbf24" />
+  <rect x="300" y="200" width="16" height="112" rx="8" fill="#f59e0b" />
+  
+  <!-- Small indicator dot -->
+  <circle cx="256" cy="115" r="8" fill="#10b981" />
+</svg>

@@ -1,0 +1,6 @@
+{
+  "name": "MELO STUDIO HUB",
+  "description": "Sistema offline de gestão, organização, aprendizagem, produção e mixagem musical para produtores de estúdio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
