@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { JournalEntry, Project } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface JournalPageProps {
   journal: JournalEntry[];
@@ -31,6 +32,7 @@ export function JournalPage({
 }: JournalPageProps) {
   const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Form states
   const [formLearned, setFormLearned] = useState('');
@@ -72,11 +74,8 @@ export function JournalPage({
     showToast('Anotação registrada no teu diário!', 'success');
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Queres excluir esta anotação do diário?')) {
-      await onDeleteEntry(id);
-      showToast('Entrada excluída', 'info');
-    }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
   };
 
   return (
@@ -306,6 +305,23 @@ export function JournalPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirmId}
+        title="Eliminar Anotação"
+        message="Tens a certeza que queres eliminar esta anotação do diário de produção?"
+        confirmText="Eliminar Anotação"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirmId) {
+            await onDeleteEntry(deleteConfirmId);
+            showToast('Anotação eliminada com sucesso', 'info');
+            setDeleteConfirmId(null);
+          }
+        }}
+        onClose={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 }

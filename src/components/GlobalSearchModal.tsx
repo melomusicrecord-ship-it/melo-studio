@@ -10,6 +10,8 @@ import {
   Music2,
   BookOpen,
   ArrowRight,
+  FlaskConical,
+  Library,
 } from 'lucide-react';
 import {
   Project,
@@ -19,6 +21,8 @@ import {
   ProcessingChain,
   Instrumental,
   JournalEntry,
+  Experience,
+  LibraryItem,
 } from '../types';
 import { AppPage } from './TopNavigation';
 
@@ -33,6 +37,8 @@ interface GlobalSearchModalProps {
   chains: ProcessingChain[];
   instrumentals: Instrumental[];
   journal: JournalEntry[];
+  experiences?: Experience[];
+  library?: LibraryItem[];
 }
 
 export function GlobalSearchModal({
@@ -46,6 +52,8 @@ export function GlobalSearchModal({
   chains,
   instrumentals,
   journal,
+  experiences = [],
+  library = [],
 }: GlobalSearchModalProps) {
   const [query, setQuery] = useState('');
 
@@ -188,8 +196,47 @@ export function GlobalSearchModal({
       }
     });
 
+    // Experiences
+    experiences.forEach((exp) => {
+      if (
+        exp.problem.toLowerCase().includes(q) ||
+        exp.solution.toLowerCase().includes(q) ||
+        (exp.pluginName && exp.pluginName.toLowerCase().includes(q)) ||
+        (exp.projectName && exp.projectName.toLowerCase().includes(q)) ||
+        (exp.chainName && exp.chainName.toLowerCase().includes(q))
+      ) {
+        found.push({
+          id: exp.id,
+          title: exp.pluginName ? `Teste: ${exp.pluginName}` : `Experiência (${exp.date})`,
+          subtitle: `${exp.problem.slice(0, 60)}...`,
+          category: 'Experiências',
+          page: 'experiences',
+          icon: FlaskConical,
+        });
+      }
+    });
+
+    // Library Documents
+    library.forEach((item) => {
+      if (
+        item.title.toLowerCase().includes(q) ||
+        item.type.toLowerCase().includes(q) ||
+        item.content.toLowerCase().includes(q) ||
+        item.tags.some((t) => t.toLowerCase().includes(q))
+      ) {
+        found.push({
+          id: item.id,
+          title: item.title,
+          subtitle: `[${item.type}] ${item.tags.join(', ')}`,
+          category: 'Biblioteca',
+          page: 'library',
+          icon: Library,
+        });
+      }
+    });
+
     return found.slice(0, 15);
-  }, [query, projects, chains, plugins, artists, instrumentals, sessions]);
+  }, [query, projects, chains, plugins, artists, instrumentals, sessions, experiences, library]);
 
   if (!isOpen) return null;
 

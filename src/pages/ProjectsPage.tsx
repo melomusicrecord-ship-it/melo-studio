@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Project, ProjectStatus, Artist, Session, ProcessingChain } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface ProjectsPageProps {
   projects: Project[];
@@ -47,6 +48,7 @@ export function ProjectsPage({
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [detailTab, setDetailTab] = useState<
     'overview' | 'sessions' | 'vocal' | 'mix' | 'master' | 'notes'
@@ -152,15 +154,9 @@ export function ProjectsPage({
     showToast(updated.favorite ? 'Projeto favoritado ⭐' : 'Removido dos favoritos', 'info');
   };
 
-  const handleDelete = async (id: string, name: string, e: MouseEvent) => {
+  const handleDelete = (id: string, name: string, e: MouseEvent) => {
     e.stopPropagation();
-    if (confirm(`Tens certeza que desejas excluir o projeto "${name}"?`)) {
-      await onDeleteProject(id);
-      showToast('Projeto excluído', 'info');
-      if (selectedProjectId === id) {
-        onSelectProject(null);
-      }
-    }
+    setDeleteConfirm({ id, name });
   };
 
   return (
@@ -627,6 +623,26 @@ export function ProjectsPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Eliminar Projeto"
+        message={`Tens a certeza que desejas eliminar o projeto "${deleteConfirm?.name}"? Esta ação removerá o projeto da base de dados do estúdio.`}
+        confirmText="Eliminar Projeto"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirm) {
+            await onDeleteProject(deleteConfirm.id);
+            showToast('Projeto eliminado com sucesso', 'info');
+            if (selectedProjectId === deleteConfirm.id) {
+              onSelectProject(null);
+            }
+            setDeleteConfirm(null);
+          }
+        }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

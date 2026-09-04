@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Session, SessionStatus, SessionType, Artist, Project } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface SessionsPageProps {
   sessions: Session[];
@@ -55,6 +56,7 @@ export function SessionsPage({
     sessions[0]?.id || ''
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingSession, setEditingSession] = useState<Session | null>(null);
 
   // Form states
@@ -146,11 +148,8 @@ export function SessionsPage({
     await onSaveSession(updated);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tens a certeza que queres excluir esta sessão?')) {
-      await onDeleteSession(id);
-      showToast('Sessão excluída', 'info');
-    }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
   };
 
   return (
@@ -560,6 +559,26 @@ export function SessionsPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirmId}
+        title="Eliminar Sessão"
+        message="Tens a certeza que queres eliminar esta sessão de gravação? Esta ação não pode ser desfeita."
+        confirmText="Eliminar Sessão"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirmId) {
+            await onDeleteSession(deleteConfirmId);
+            showToast('Sessão eliminada com sucesso', 'info');
+            if (selectedSessionId === deleteConfirmId) {
+              setSelectedSessionId(sessions.find((s) => s.id !== deleteConfirmId)?.id || '');
+            }
+            setDeleteConfirmId(null);
+          }
+        }}
+        onClose={() => setDeleteConfirmId(null)}
+      />
     </div>
   );
 }

@@ -20,6 +20,9 @@ import { InstrumentalsPage } from './pages/InstrumentalsPage';
 import { JournalPage } from './pages/JournalPage';
 import { KnowledgePage } from './pages/KnowledgePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ExperiencesPage } from './pages/ExperiencesPage';
+import { LibraryPage } from './pages/LibraryPage';
+import { StatsPage } from './pages/StatsPage';
 
 // Database & Types
 import { studioDB } from './services/db';
@@ -32,6 +35,8 @@ import {
   PluginItem,
   Instrumental,
   JournalEntry,
+  Experience,
+  LibraryItem,
 } from './types';
 import {
   INITIAL_CHAINS,
@@ -42,6 +47,8 @@ import {
   INITIAL_PLUGINS,
   INITIAL_INSTRUMENTALS,
   INITIAL_JOURNAL,
+  INITIAL_EXPERIENCES,
+  INITIAL_LIBRARY,
 } from './data/initialData';
 import { X, Plus, GitMerge } from 'lucide-react';
 
@@ -71,6 +78,8 @@ function StudioApp() {
   const [plugins, setPlugins] = useState<PluginItem[]>(INITIAL_PLUGINS);
   const [instrumentals, setInstrumentals] = useState<Instrumental[]>(INITIAL_INSTRUMENTALS);
   const [journal, setJournal] = useState<JournalEntry[]>(INITIAL_JOURNAL);
+  const [experiences, setExperiences] = useState<Experience[]>(INITIAL_EXPERIENCES);
+  const [library, setLibrary] = useState<LibraryItem[]>(INITIAL_LIBRARY);
   const [isLoading, setIsLoading] = useState(true);
 
   // New Chain Modal Form State
@@ -83,7 +92,7 @@ function StudioApp() {
   const reloadAllData = useCallback(async () => {
     try {
       await studioDB.init();
-      const [s, p, a, sess, c, pl, inst, j] = await Promise.all([
+      const [s, p, a, sess, c, pl, inst, j, exp, lib] = await Promise.all([
         studioDB.getSettings(),
         studioDB.getProjects(),
         studioDB.getArtists(),
@@ -92,6 +101,8 @@ function StudioApp() {
         studioDB.getPlugins(),
         studioDB.getInstrumentals(),
         studioDB.getJournal(),
+        studioDB.getExperiences(),
+        studioDB.getLibrary(),
       ]);
 
       if (s) setSettings(s);
@@ -102,6 +113,8 @@ function StudioApp() {
       if (pl && pl.length > 0) setPlugins(pl);
       if (inst && inst.length > 0) setInstrumentals(inst);
       if (j && j.length > 0) setJournal(j);
+      if (exp && exp.length > 0) setExperiences(exp);
+      if (lib && lib.length > 0) setLibrary(lib);
 
       if (s && !s.onboarded) {
         setIsOnboardingOpen(true);
@@ -226,6 +239,26 @@ function StudioApp() {
   const handleDeleteJournalEntry = async (id: string) => {
     await studioDB.deleteJournalEntry(id);
     setJournal(await studioDB.getJournal());
+  };
+
+  const handleSaveExperience = async (exp: Experience) => {
+    await studioDB.saveExperience(exp);
+    setExperiences(await studioDB.getExperiences());
+  };
+
+  const handleDeleteExperience = async (id: string) => {
+    await studioDB.deleteExperience(id);
+    setExperiences(await studioDB.getExperiences());
+  };
+
+  const handleSaveLibraryItem = async (item: LibraryItem) => {
+    await studioDB.saveLibraryItem(item);
+    setLibrary(await studioDB.getLibrary());
+  };
+
+  const handleDeleteLibraryItem = async (id: string) => {
+    await studioDB.deleteLibraryItem(id);
+    setLibrary(await studioDB.getLibrary());
   };
 
   const handleSaveSettings = async (newSettings: StudioSettings) => {
@@ -424,6 +457,43 @@ function StudioApp() {
 
         {(currentPage === 'knowledge' || currentPage === 'learning') && <KnowledgePage />}
 
+        {currentPage === 'experiences' && (
+          <ExperiencesPage
+            experiences={experiences}
+            projects={projects}
+            chains={chains}
+            plugins={plugins}
+            subFilter={subFilter}
+            onSaveExperience={handleSaveExperience}
+            onDeleteExperience={handleDeleteExperience}
+          />
+        )}
+
+        {currentPage === 'library' && (
+          <LibraryPage
+            library={library}
+            subFilter={subFilter}
+            onSaveItem={handleSaveLibraryItem}
+            onDeleteItem={handleDeleteLibraryItem}
+          />
+        )}
+
+        {currentPage === 'stats' && (
+          <StatsPage
+            projects={projects}
+            artists={artists}
+            sessions={sessions}
+            plugins={plugins}
+            chains={chains}
+            instrumentals={instrumentals}
+            journal={journal}
+            experiences={experiences}
+            settings={settings}
+            subFilter={subFilter}
+            onNavigate={handleNavigate}
+          />
+        )}
+
         {currentPage === 'settings' && (
           <SettingsPage
             settings={settings}
@@ -479,6 +549,8 @@ function StudioApp() {
         sessions={sessions}
         instrumentals={instrumentals}
         journal={journal}
+        experiences={experiences}
+        library={library}
         onNavigate={handleNavigate}
       />
 

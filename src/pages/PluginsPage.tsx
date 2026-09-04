@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { PluginItem, PluginCategory } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface PluginsPageProps {
   plugins: PluginItem[];
@@ -80,6 +81,7 @@ export function PluginsPage({
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [editingPlugin, setEditingPlugin] = useState<PluginItem | null>(null);
 
   // Form states
@@ -191,11 +193,8 @@ export function PluginsPage({
     await onSavePlugin(updated);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Queres excluir o plugin "${name}" da biblioteca?`)) {
-      await onDeletePlugin(id);
-      showToast('Plugin excluído', 'info');
-    }
+  const handleDelete = (id: string, name: string) => {
+    setDeleteConfirm({ id, name });
   };
 
   return (
@@ -499,6 +498,23 @@ export function PluginsPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Eliminar Plugin"
+        message={`Tens a certeza que queres eliminar o plugin "${deleteConfirm?.name}" da biblioteca?`}
+        confirmText="Eliminar Plugin"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirm) {
+            await onDeletePlugin(deleteConfirm.id);
+            showToast('Plugin eliminado com sucesso', 'info');
+            setDeleteConfirm(null);
+          }
+        }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

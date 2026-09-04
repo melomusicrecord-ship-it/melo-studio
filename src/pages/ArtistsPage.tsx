@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Artist } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface ArtistsPageProps {
   artists: Artist[];
@@ -32,6 +33,7 @@ export function ArtistsPage({
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
 
   // Form state
@@ -117,11 +119,8 @@ export function ArtistsPage({
     await onSaveArtist(updated);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Queres mesmo excluir o perfil do artista "${name}"?`)) {
-      await onDeleteArtist(id);
-      showToast('Artista excluído', 'info');
-    }
+  const handleDelete = (id: string, name: string) => {
+    setDeleteConfirm({ id, name });
   };
 
   return (
@@ -380,6 +379,23 @@ export function ArtistsPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Eliminar Artista"
+        message={`Tens a certeza que queres eliminar o perfil do artista "${deleteConfirm?.name}"?`}
+        confirmText="Eliminar Artista"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirm) {
+            await onDeleteArtist(deleteConfirm.id);
+            showToast('Artista eliminado com sucesso', 'info');
+            setDeleteConfirm(null);
+          }
+        }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { StudioSettings } from '../types';
 import { studioDB } from '../services/db';
 import { useToast } from '../components/Toast';
 import { usePWA } from '../hooks/usePWA';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface SettingsPageProps {
   settings: StudioSettings;
@@ -43,6 +44,7 @@ export function SettingsPage({
   const [useOnlyOwned, setUseOnlyOwned] = useState(
     settings.useOnlyOwnedPlugins || false
   );
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault();
@@ -94,16 +96,8 @@ export function SettingsPage({
   };
 
   // Reset to factory demo
-  const handleResetFactory = async () => {
-    if (
-      confirm(
-        'Tens a certeza que queres restaurar os dados de demonstração de fábrica? Todas as cadeias e projetos padrão serão recarregados.'
-      )
-    ) {
-      await studioDB.resetToFactoryData();
-      await onReloadAllData();
-      showToast('Dados de fábrica restaurados!', 'info');
-    }
+  const handleResetFactory = () => {
+    setIsResetConfirmOpen(true);
   };
 
   return (
@@ -309,6 +303,22 @@ export function SettingsPage({
           )}
         </div>
       </div>
+      {/* Confirm Reset Factory Modal */}
+      <ConfirmModal
+        isOpen={isResetConfirmOpen}
+        title="Restaurar Dados de Fábrica"
+        message="Tens a certeza que queres restaurar os dados de demonstração de fábrica? Todas as cadeias, plugins e projetos padrão serão recarregados na base de dados."
+        confirmText="Restaurar Fábrica"
+        cancelText="Cancelar"
+        variant="warning"
+        onConfirm={async () => {
+          await studioDB.resetToFactoryData();
+          await onReloadAllData();
+          showToast('Dados de fábrica restaurados com sucesso!', 'info');
+          setIsResetConfirmOpen(false);
+        }}
+        onClose={() => setIsResetConfirmOpen(false)}
+      />
     </div>
   );
 }

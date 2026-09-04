@@ -184,11 +184,34 @@ export type ChainLevel = 'Iniciante' | 'Intermediário' | 'Avançado';
 export type ChainVersion = 'Essencial' | 'Completa' | 'Avançada';
 export type RoutingType = 'Serial' | 'Parallel' | 'Sends';
 
+export type ChainGoal =
+  | 'Limpar'
+  | 'Controlar dinâmica'
+  | 'Dar presença'
+  | 'Dar brilho'
+  | 'Dar corpo'
+  | 'Dar espaço'
+  | 'Criar efeito'
+  | 'Preparar para mix'
+  | 'Finalizar';
+
 export interface AlternativePlugins {
   pro: string;
   alt: string;
   free: string;
   native: string;
+}
+
+export interface GuideQuestion {
+  question: string;
+  ifYes: string;
+  ifNo: string;
+}
+
+export interface RoutingDetails {
+  type: 'Serial' | 'Parallel' | 'Send / Aux' | 'Sidechain' | 'Mid/Side';
+  busName?: string;
+  notes?: string;
 }
 
 export interface ChainStep {
@@ -200,8 +223,14 @@ export interface ChainStep {
   objective: string;
   whyIsItHere: string;
   whatToHear: string;
+  whatToHearBefore?: string;
+  whatToHearAfter?: string;
+  guideQuestion?: GuideQuestion;
+  pedagogicalTip?: string;
   whenNotToUse: string;
   alternatives: AlternativePlugins;
+  techniqueTip?: string;
+  routingDetails?: RoutingDetails;
   myNote?: string;
   completed?: boolean;
   favorite?: boolean;

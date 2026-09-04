@@ -74,7 +74,7 @@ export function TopNavigation({
     { id: 'projects' as AppPage, label: 'Projetos', icon: FolderKanban },
     { id: 'artists' as AppPage, label: 'Artistas', icon: Users },
     { id: 'sessions' as AppPage, label: 'Sessões', icon: Mic },
-    { id: 'chains' as AppPage, label: 'Guia de Chains', icon: GitMerge },
+    { id: 'chains' as AppPage, label: 'Guia de Cadeias', icon: GitMerge },
     { id: 'diagnosis' as AppPage, label: 'Diagnóstico', icon: Stethoscope },
     { id: 'plugins' as AppPage, label: 'Plugins', icon: Plug },
     { id: 'instrumentals' as AppPage, label: 'Instrumentais', icon: Music2 },
@@ -103,14 +103,15 @@ export function TopNavigation({
         ];
       case 'chains':
         return [
-          { id: 'all', label: 'Todas as Cadeias' },
+          { id: 'guide', label: '🎛️ Guia Interativo' },
+          { id: 'all', label: '📚 Todas as Cadeias' },
           { id: 'Lead Vocal', label: '🎤 Lead Vocal' },
           { id: 'Backing Vocal', label: '👥 Backing / Adlibs' },
-          { id: '808', label: '🔊 808 & Bass' },
+          { id: 'Bass', label: '🎸 808 & Bass' },
           { id: 'Kick', label: '🥁 Kick & Drums' },
-          { id: 'Master', label: '🎚️ Master' },
-          { id: 'favorites', label: '⭐ Minhas Chains' },
-          { id: 'compare', label: '🔀 Comparar Chains' },
+          { id: 'Mix Bus', label: '🎚️ Mix Bus & Master' },
+          { id: 'favorites', label: '⭐ Favoritas' },
+          { id: 'compare', label: '🔀 Comparador A/B' },
         ];
       case 'plugins':
         return [
@@ -165,6 +166,30 @@ export function TopNavigation({
           { id: 'studio', label: 'Estúdio & DAW' },
           { id: 'backup', label: '💾 Backup & Restauração' },
           { id: 'demo', label: '🔄 Dados de Demonstração' },
+        ];
+      case 'experiences':
+        return [
+          { id: 'all', label: 'Todos os Testes' },
+          { id: 'rating-5', label: '⭐⭐⭐⭐⭐ Ouro (5 Estrelas)' },
+          { id: 'vocal', label: '🎤 Vocais' },
+          { id: 'mix', label: '🎛️ Mix & Master' },
+          { id: 'plugins', label: '🔌 Com Plugins' },
+        ];
+      case 'library':
+        return [
+          { id: 'all', label: 'Todos os Documentos' },
+          { id: 'type-Template', label: '📋 Templates' },
+          { id: 'type-Nota de Estúdio', label: '📝 Notas & Frequências' },
+          { id: 'type-Tutorial', label: '💡 Tutoriais' },
+          { id: 'type-Preset', label: '🎚️ Presets' },
+          { id: 'type-Referência', label: '🎯 Referências' },
+        ];
+      case 'stats':
+        return [
+          { id: 'all', label: '📊 Visão Geral' },
+          { id: 'pipeline', label: '📁 Pipeline de Projetos' },
+          { id: 'plugins', label: '🔌 Arsenal de Plugins' },
+          { id: 'beats', label: '🎹 Catálogo de Beats' },
         ];
       default:
         return [];

@@ -74,7 +74,7 @@ export function MobileDrawer({
     {
       title: 'Mixagem & Som',
       items: [
-        { id: 'chains' as AppPage, label: 'Guia de Chains', icon: GitMerge },
+        { id: 'chains' as AppPage, label: '🎛️ Guia de Cadeias', icon: GitMerge },
         { id: 'diagnosis' as AppPage, label: 'Diagnóstico ("Tenho um Problema")', icon: Stethoscope },
         { id: 'plugins' as AppPage, label: 'Biblioteca de Plugins', icon: Plug },
       ],

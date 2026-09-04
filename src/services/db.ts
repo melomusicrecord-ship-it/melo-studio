@@ -524,6 +524,26 @@ class StudioDB {
     return this.deleteItem('journal', id);
   }
 
+  public async getExperiences(): Promise<Experience[]> {
+    return this.getAll<Experience>('experiences');
+  }
+  public async saveExperience(item: Experience): Promise<Experience> {
+    return this.saveItem<Experience>('experiences', item);
+  }
+  public async deleteExperience(id: string): Promise<boolean> {
+    return this.deleteItem('experiences', id);
+  }
+
+  public async getLibrary(): Promise<LibraryItem[]> {
+    return this.getAll<LibraryItem>('library');
+  }
+  public async saveLibraryItem(item: LibraryItem): Promise<LibraryItem> {
+    return this.saveItem<LibraryItem>('library', item);
+  }
+  public async deleteLibraryItem(id: string): Promise<boolean> {
+    return this.deleteItem('library', id);
+  }
+
   public async exportFullBackup(): Promise<string> {
     return this.exportBackup();
   }

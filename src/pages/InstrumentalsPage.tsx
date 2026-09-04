@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Instrumental, InstrumentalStatus } from '../types';
 import { useToast } from '../components/Toast';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface InstrumentalsPageProps {
   instrumentals: Instrumental[];
@@ -30,6 +31,7 @@ export function InstrumentalsPage({
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   const [editingInst, setEditingInst] = useState<Instrumental | null>(null);
 
   // Form states
@@ -121,11 +123,8 @@ export function InstrumentalsPage({
     await onSaveInstrumental(updated);
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Queres excluir o instrumental "${title}"?`)) {
-      await onDeleteInstrumental(id);
-      showToast('Instrumental excluído', 'info');
-    }
+  const handleDelete = (id: string, title: string) => {
+    setDeleteConfirm({ id, title });
   };
 
   return (
@@ -393,6 +392,23 @@ export function InstrumentalsPage({
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        title="Eliminar Instrumental"
+        message={`Tens a certeza que queres eliminar o beat/instrumental "${deleteConfirm?.title}"?`}
+        confirmText="Eliminar Beat"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (deleteConfirm) {
+            await onDeleteInstrumental(deleteConfirm.id);
+            showToast('Instrumental eliminado com sucesso', 'info');
+            setDeleteConfirm(null);
+          }
+        }}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }
