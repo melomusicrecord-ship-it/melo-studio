@@ -24,6 +24,7 @@ import { ExperiencesPage } from './pages/ExperiencesPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { StatsPage } from './pages/StatsPage';
 import { ToolsPage } from './pages/ToolsPage';
+import { MeloVocalEngine } from './components/vocal-engine/MeloVocalEngine';
 
 // Database & Types
 import { studioDB } from './services/db';
@@ -334,6 +335,22 @@ function StudioApp() {
     showToast('Nova cadeia criada com sucesso!', 'success');
   };
 
+  const handleAssociateWithProject = async (projectId: string, chainTarget: string, chainTitle: string) => {
+    const proj = projects.find((p) => p.id === projectId);
+    if (!proj) return;
+    const currentChains = proj.projectChains || {};
+    const updatedChains = {
+      ...currentChains,
+      [chainTarget]: chainTitle,
+    };
+    const updatedProj: Project = {
+      ...proj,
+      projectChains: updatedChains,
+      updatedAt: new Date().toISOString().split('T')[0],
+    };
+    await handleSaveProject(updatedProj);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-4">
@@ -378,15 +395,25 @@ function StudioApp() {
           />
         )}
 
+        {currentPage === 'vocal-engine' && (
+          <MeloVocalEngine
+            plugins={plugins}
+            projects={projects}
+            onAssociateWithProject={handleAssociateWithProject}
+          />
+        )}
+
         {currentPage === 'chains' && (
           <ChainsPage
             chains={chains}
             plugins={plugins}
             settings={settings}
             subFilter={subFilter}
+            projects={projects}
             onSaveChain={handleSaveChain}
             onDeleteChain={handleDeleteChain}
             onOpenNewChainModal={() => setIsNewChainModalOpen(true)}
+            onAssociateWithProject={handleAssociateWithProject}
           />
         )}
 
@@ -401,6 +428,7 @@ function StudioApp() {
             onSelectProject={setSelectedEntityId}
             onSaveProject={handleSaveProject}
             onDeleteProject={handleDeleteProject}
+            onNavigate={handleNavigate}
           />
         )}
 

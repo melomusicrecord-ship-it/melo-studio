@@ -53,15 +53,19 @@ import {
 } from '../services/chainGuideEngine';
 import { useToast } from '../components/Toast';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { MeloVocalEngine } from '../components/vocal-engine/MeloVocalEngine';
+import { Project } from '../types';
 
 interface ChainsPageProps {
   chains: ProcessingChain[];
   plugins: PluginItem[];
   settings: StudioSettings;
   subFilter: string;
+  projects?: Project[];
   onSaveChain: (chain: ProcessingChain) => Promise<void>;
   onDeleteChain: (id: string) => Promise<void>;
   onOpenNewChainModal: () => void;
+  onAssociateWithProject?: (projectId: string, chainTarget: string, chainTitle: string) => Promise<void>;
 }
 
 export function ChainsPage({
@@ -69,14 +73,17 @@ export function ChainsPage({
   plugins,
   settings,
   subFilter,
+  projects = [],
   onSaveChain,
   onDeleteChain,
   onOpenNewChainModal,
+  onAssociateWithProject,
 }: ChainsPageProps) {
   const { showToast } = useToast();
 
-  // Mode: Interactive Guide vs Saved Chains vs A/B Compare
-  const [pageMode, setPageMode] = useState<'guide' | 'library' | 'compare'>(
+  // Mode: Vocal Engine vs Interactive Guide vs Saved Chains vs A/B Compare
+  const [pageMode, setPageMode] = useState<'vocal-engine' | 'guide' | 'library' | 'compare'>(
+    subFilter === 'vocal-engine' || subFilter === 'vocal' ? 'vocal-engine' :
     subFilter === 'compare' ? 'compare' : 'guide'
   );
 
@@ -117,7 +124,9 @@ export function ChainsPage({
 
   // Update guide chain when target/style/goal/level changes, or when subFilter changes
   useEffect(() => {
-    if (subFilter === 'compare') {
+    if (subFilter === 'vocal-engine' || subFilter === 'vocal') {
+      setPageMode('vocal-engine');
+    } else if (subFilter === 'compare') {
       setPageMode('compare');
     } else if (subFilter === 'guide') {
       setPageMode('guide');
@@ -448,7 +457,19 @@ export function ChainsPage({
 
       {/* Main Mode Switcher Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-zinc-800">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-zinc-800 overflow-x-auto">
+          <button
+            onClick={() => setPageMode('vocal-engine')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              pageMode === 'vocal-engine'
+                ? 'bg-gradient-to-r from-amber-500 to-amber-400 text-black shadow-lg shadow-amber-500/20'
+                : 'text-amber-400 hover:text-amber-300 hover:bg-zinc-850'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>🎙️ Melo Vocal Engine</span>
+            <span className="px-1.5 py-0.2 rounded text-[9px] bg-black/30 font-mono">AVANÇADO</span>
+          </button>
           <button
             onClick={() => setPageMode('guide')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
@@ -458,7 +479,7 @@ export function ChainsPage({
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            🎛️ Guia Passo a Passo (Interativo)
+            🎛️ Guia Passo a Passo (Geral)
           </button>
           <button
             onClick={() => setPageMode('library')}
@@ -485,7 +506,7 @@ export function ChainsPage({
         </div>
 
         {/* Global Action in Top Bar */}
-        {activeChain && (
+        {activeChain && pageMode !== 'vocal-engine' && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleCopyDawBlueprint(activeChain)}
@@ -505,6 +526,17 @@ export function ChainsPage({
           </div>
         )}
       </div>
+
+      {/* ========================================================================= */}
+      {/* MODE 0: MELO VOCAL ENGINE (NOVO MÓDULO AVANÇADO)                          */}
+      {/* ========================================================================= */}
+      {pageMode === 'vocal-engine' && (
+        <MeloVocalEngine
+          plugins={plugins}
+          projects={projects}
+          onAssociateWithProject={onAssociateWithProject}
+        />
+      )}
 
       {/* ========================================================================= */}
       {/* MODE 1: INTERACTIVE GUIDE SELECTOR (O QUE O USUÁRIO PEDIU)                 */}

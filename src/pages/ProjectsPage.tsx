@@ -32,6 +32,7 @@ interface ProjectsPageProps {
   onSelectProject: (id: string | null) => void;
   onSaveProject: (project: Project) => Promise<void>;
   onDeleteProject: (id: string) => Promise<void>;
+  onNavigate?: (page: string, subFilter?: string) => void;
 }
 
 export function ProjectsPage({
@@ -44,6 +45,7 @@ export function ProjectsPage({
   onSelectProject,
   onSaveProject,
   onDeleteProject,
+  onNavigate,
 }: ProjectsPageProps) {
   const { showToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -419,13 +421,105 @@ export function ProjectsPage({
                 )}
 
                 {detailTab === 'vocal' && (
-                  <div className="p-3.5 rounded-xl bg-zinc-950/60 border border-zinc-850 space-y-2">
-                    <span className="font-bold text-zinc-200 block">Checklist Vocal:</span>
-                    <div className="space-y-1 text-zinc-400">
-                      <div>✓ Lead Vocal registrado em 24-bit / 48kHz</div>
-                      <div>✓ Comping das melhores frases concluído</div>
-                      <div>✓ Afinação de apoio em tom {activeProject.key}</div>
-                      <div>✓ De-esser Pro-DS aplicado antes da saturação</div>
+                  <div className="space-y-3">
+                    {/* Vocal Engine Quick Launch */}
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-[#141418] to-zinc-900 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-lg">
+                          🎙️
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-mono text-amber-400 font-bold block">
+                            Melo Vocal Engine
+                          </span>
+                          <span className="font-bold text-white text-xs">
+                            Tratamento & Cadeia Vocal de {activeProject.name}
+                          </span>
+                        </div>
+                      </div>
+                      {onNavigate && (
+                        <button
+                          onClick={() => onNavigate('vocal-engine')}
+                          className="px-3 py-1.5 rounded-lg bg-amber-500 text-black font-bold text-xs hover:bg-amber-400 transition-colors flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+                        >
+                          <span>Abrir Vocal Engine</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Assigned Project Chains */}
+                    <div className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-850 space-y-2.5">
+                      <span className="font-bold text-zinc-200 block text-xs">
+                        Cadeias de Processamento do Projeto:
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+                          <div>
+                            <span className="text-zinc-500 block text-[9px] uppercase font-mono">Lead Vocal</span>
+                            <span className="font-semibold text-zinc-200">
+                              {activeProject.projectChains?.leadVocal || 'Lead Vocal — Afrobeat Clean'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">
+                            Ativa
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+                          <div>
+                            <span className="text-zinc-500 block text-[9px] uppercase font-mono">Backing Vocals</span>
+                            <span className="font-semibold text-zinc-200">
+                              {activeProject.projectChains?.backingVocal || 'Backing Vocals Estéreo'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20">
+                            Pronto
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+                          <div>
+                            <span className="text-zinc-500 block text-[9px] uppercase font-mono">Adlibs & Efeitos</span>
+                            <span className="font-semibold text-zinc-200">
+                              {activeProject.projectChains?.adlibs || 'Adlibs Espaciais (Ping-Pong & Pitch)'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/20">
+                            FX Bus
+                          </span>
+                        </div>
+
+                        <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+                          <div>
+                            <span className="text-zinc-500 block text-[9px] uppercase font-mono">Vocal Bus (Glue)</span>
+                            <span className="font-semibold text-zinc-200">
+                              {activeProject.projectChains?.vocalBus || 'Vocal Bus Glue (SSL G-Master + Saturn 2)'}
+                            </span>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/20">
+                            Glue
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Vocal Notes */}
+                    <div className="p-3.5 rounded-xl bg-zinc-950/70 border border-zinc-850 space-y-1.5">
+                      <span className="font-bold text-zinc-200 block text-xs">
+                        Anotações Vocais & Equipamento:
+                      </span>
+                      <textarea
+                        value={activeProject.vocalNotes || ''}
+                        onChange={async (e) => {
+                          const updated = { ...activeProject, vocalNotes: e.target.value };
+                          await onSaveProject(updated);
+                        }}
+                        placeholder="Ex: Gravado no Shure SM7B + Apollo Twin. Afinação em tom E menor. Cantora prefere pouco reverb na voz principal..."
+                        rows={3}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-200 focus:outline-none focus:border-amber-500/50"
+                      />
+                      <p className="text-[10px] text-zinc-500">Salvo automaticamente no projeto.</p>
                     </div>
                   </div>
                 )}

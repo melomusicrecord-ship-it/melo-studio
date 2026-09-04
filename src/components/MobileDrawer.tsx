@@ -75,6 +75,7 @@ export function MobileDrawer({
     {
       title: 'Mixagem & Som',
       items: [
+        { id: 'vocal-engine' as AppPage, label: '🎙️ Melo Vocal Engine', icon: Headphones },
         { id: 'chains' as AppPage, label: '🎛️ Guia de Cadeias', icon: GitMerge },
         { id: 'diagnosis' as AppPage, label: 'Diagnóstico ("Tenho um Problema")', icon: Stethoscope },
         { id: 'tools' as AppPage, label: '🧮 Calculadora & Áudio', icon: Calculator },

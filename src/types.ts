@@ -23,6 +23,15 @@ export interface Project {
   progress?: number;
   tags?: string[];
   chainIds?: string[];
+  projectChains?: {
+    leadVocal?: string;
+    backingVocal?: string;
+    adlibs?: string;
+    vocalBus?: string;
+    fxChain?: string;
+    masterChain?: string;
+  };
+  vocalNotes?: string;
 }
 
 export interface Artist {
@@ -119,12 +128,15 @@ export interface Instrumental {
 
 export type PluginCategory =
   | 'EQ'
+  | 'Dynamic EQ'
   | 'Compressor'
   | 'Limiter'
   | 'De-Esser'
   | 'Noise Reduction'
   | 'Gate'
   | 'Saturation'
+  | 'Console'
+  | 'Filter'
   | 'Distortion'
   | 'Transient Shaper'
   | 'Reverb'
@@ -137,6 +149,7 @@ export type PluginCategory =
   | 'Clipper'
   | 'Metering'
   | 'Utility'
+  | 'Pitch Correction'
   | 'Synth'
   | 'Sampler'
   | 'Instrument'
@@ -345,3 +358,109 @@ export interface StudioStats {
   ideasCount: number;
   experiencesCount: number;
 }
+
+// ==========================================
+// 🎙️ MELO VOCAL ENGINE TYPES
+// ==========================================
+
+export type VocalExperienceLevel = 'Iniciante' | 'Produtor' | 'Engineer';
+export type ChainStepState = 'ok' | 'warning' | 'critical' | 'bypass';
+
+export interface VocalFlowStep {
+  id: string;
+  stepNumber: string;
+  title: string;
+  stage: string;
+  objective: string;
+  recommendedPlugins: {
+    name: string;
+    manufacturer: string;
+    role: string;
+  }[];
+  position: string;
+  parameters: string;
+  dosage: {
+    initialValue: string;
+    suggestedRange: string;
+    earGuide: string;
+    warning?: string;
+  };
+  whatToHear: string;
+  risks: string;
+  whenNotToUse: string;
+  alternatives: string[];
+}
+
+export interface VocalProblem {
+  id: string;
+  title: string;
+  region: string;
+  firstTool: string;
+  acaoRecomendada: string;
+  faixaInicial: string;
+  oQueOuvir: string;
+  oQueEvitar: string;
+  alternatives: string[];
+  recommendedAction?: string;
+  initialRange?: string;
+  whatToListen?: string;
+  whatToAvoid?: string;
+}
+
+export interface VocalFreqZone {
+  range: string;
+  name: string;
+  description: string;
+  primaryAction: string;
+  warning: string;
+  icon?: string;
+}
+
+export interface PluginKnowledgeItem {
+  id: string;
+  pluginName: string;
+  manufacturer: string;
+  category: string;
+  whatItDoes: string;
+  whenToUse: string;
+  whenNotToUse: string;
+  whyUseIt: string;
+  whatIfNotUsed: string;
+  whatIfOverused: string;
+  whatToHear: string;
+  commonMistakes: string;
+  practicalExample: string;
+  alternatives: string[];
+  recommendedPositions: string[];
+  vocalTypes: string[];
+  styles: string[];
+  suggestedDosage: {
+    light: string;
+    moderate: string;
+    heavy: string;
+    veryHeavy?: string;
+    safetyNotice?: string;
+  };
+}
+
+export interface VocalChainPreset {
+  id: string;
+  title: string;
+  target: string;
+  style: string;
+  description: string;
+  characteristics: string[];
+  focus: string[];
+  steps: {
+    number: string;
+    plugin: string;
+    manufacturer: string;
+    role: string;
+    why: string;
+    how: string;
+    initialDosage: string;
+    whatToHear: string;
+    state?: ChainStepState;
+  }[];
+}
+

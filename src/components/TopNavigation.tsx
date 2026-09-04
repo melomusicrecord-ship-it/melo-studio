@@ -32,9 +32,10 @@ export type AppPage =
   | 'artists'
   | 'agenda'
   | 'sessions'
+  | 'vocal-engine'
+  | 'chains'
   | 'instrumentals'
   | 'plugins'
-  | 'chains'
   | 'diagnosis'
   | 'tools'
   | 'experiences'
@@ -76,6 +77,7 @@ export function TopNavigation({
     { id: 'projects' as AppPage, label: 'Projetos', icon: FolderKanban },
     { id: 'artists' as AppPage, label: 'Artistas', icon: Users },
     { id: 'sessions' as AppPage, label: 'Sessões', icon: Mic },
+    { id: 'vocal-engine' as AppPage, label: '🎙️ Vocal Engine', icon: Headphones },
     { id: 'chains' as AppPage, label: 'Guia de Cadeias', icon: GitMerge },
     { id: 'diagnosis' as AppPage, label: 'Diagnóstico', icon: Stethoscope },
     { id: 'tools' as AppPage, label: 'Calculadora & Áudio', icon: Calculator },
@@ -104,8 +106,18 @@ export function TopNavigation({
           { id: 'Finalizado', label: '✅ Finalizado' },
           { id: 'favorites', label: '⭐ Favoritos' },
         ];
+      case 'vocal-engine':
+        return [
+          { id: 'chain', label: '🎛️ Cadeia Ativa' },
+          { id: 'flow', label: '📚 16 Etapas' },
+          { id: 'diagnosis', label: '🎯 Diagnóstico Vocal' },
+          { id: 'frequency', label: '📊 Mapa de Frequências' },
+          { id: 'plugins', label: '📖 Banco de Plugins' },
+          { id: 'checklist', label: '✅ Check Final & Master' },
+        ];
       case 'chains':
         return [
+          { id: 'vocal-engine', label: '🎙️ Vocal Engine' },
           { id: 'guide', label: '🎛️ Guia Interativo' },
           { id: 'all', label: '📚 Todas as Cadeias' },
           { id: 'Lead Vocal', label: '🎤 Lead Vocal' },

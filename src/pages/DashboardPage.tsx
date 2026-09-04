@@ -15,6 +15,7 @@ import {
   Star,
   Sparkles,
   Calculator,
+  Headphones,
 } from 'lucide-react';
 import {
   Project,
@@ -354,10 +355,18 @@ export function DashboardPage({
               </button>
 
               <button
-                onClick={() => onNavigate('tools')}
+                onClick={() => onNavigate('vocal-engine')}
                 className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
               >
-                <Calculator className="w-3.5 h-3.5" />
+                <Headphones className="w-3.5 h-3.5" />
+                <span>🎙️ Melo Vocal Engine</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('tools')}
+                className="text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
+              >
+                <Calculator className="w-3.5 h-3.5 text-amber-400" />
                 <span>🧮 Calculadora de Áudio</span>
               </button>
 
@@ -369,6 +378,40 @@ export function DashboardPage({
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Melo Vocal Engine Spotlight Banner */}
+      <div
+        onClick={() => onNavigate('vocal-engine')}
+        className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#16161b] to-zinc-900 border border-amber-500/35 hover:border-amber-500/60 cursor-pointer transition-all shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
+            🎙️
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400 font-mono">
+                NOVO MÓDULO AVANÇADO
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                16 ETAPAS • WAVES & FABFILTER
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
+              Melo Vocal Engine • Central de Produção e Mixagem Vocal
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Limpeza acústica, afinação, de-essing, compressão em série, saturação analógica, ambiência e masterização.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="px-4 py-2 rounded-xl bg-amber-500 text-black font-bold text-xs group-hover:bg-amber-400 transition-colors flex items-center gap-1.5 shadow-md shadow-amber-500/20">
+            <span>Abrir Vocal Engine</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </span>
         </div>
       </div>
 
