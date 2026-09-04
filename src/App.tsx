@@ -23,6 +23,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ExperiencesPage } from './pages/ExperiencesPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { StatsPage } from './pages/StatsPage';
+import { ToolsPage } from './pages/ToolsPage';
 
 // Database & Types
 import { studioDB } from './services/db';
@@ -425,6 +426,10 @@ function StudioApp() {
 
         {currentPage === 'diagnosis' && (
           <DiagnosisPage subFilter={subFilter} />
+        )}
+
+        {currentPage === 'tools' && (
+          <ToolsPage subFilter={subFilter} />
         )}
 
         {currentPage === 'artists' && (

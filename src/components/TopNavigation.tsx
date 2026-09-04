@@ -14,6 +14,7 @@ import {
   Library,
   BarChart3,
   Settings,
+  Calculator,
   Plus,
   Search,
   Menu,
@@ -35,6 +36,7 @@ export type AppPage =
   | 'plugins'
   | 'chains'
   | 'diagnosis'
+  | 'tools'
   | 'experiences'
   | 'journal'
   | 'learning'
@@ -76,6 +78,7 @@ export function TopNavigation({
     { id: 'sessions' as AppPage, label: 'Sessões', icon: Mic },
     { id: 'chains' as AppPage, label: 'Guia de Cadeias', icon: GitMerge },
     { id: 'diagnosis' as AppPage, label: 'Diagnóstico', icon: Stethoscope },
+    { id: 'tools' as AppPage, label: 'Calculadora & Áudio', icon: Calculator },
     { id: 'plugins' as AppPage, label: 'Plugins', icon: Plug },
     { id: 'instrumentals' as AppPage, label: 'Instrumentais', icon: Music2 },
     { id: 'agenda' as AppPage, label: 'Agenda', icon: Calendar },
@@ -191,6 +194,13 @@ export function TopNavigation({
           { id: 'plugins', label: '🔌 Arsenal de Plugins' },
           { id: 'beats', label: '🎹 Catálogo de Beats' },
         ];
+      case 'tools':
+        return [
+          { id: 'all', label: '🧮 Todas as Ferramentas' },
+          { id: 'delay', label: '⏱️ Delay & Reverb Sync' },
+          { id: 'freq', label: '🎯 Nota ➔ Hz (808 / Kick)' },
+          { id: 'pitch', label: '🔄 Pitch & Time-Stretch' },
+        ];
       default:
         return [];
     }
@@ -273,12 +283,16 @@ export function TopNavigation({
 
           {/* Quick Studio Tools */}
           <button
-            onClick={onOpenQuickTools}
-            className="px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 text-zinc-200 text-xs font-medium flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
-            title="BPM Tapper, Escala Musical e Tabela de Hertz"
+            onClick={() => onPageChange('tools')}
+            className={`px-2.5 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-all active:scale-95 shrink-0 cursor-pointer ${
+              currentPage === 'tools'
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
+                : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-750 text-zinc-200'
+            }`}
+            title="Calculadora de Delay/Reverb, Nota ➔ Hz e Pitch"
           >
-            <Activity className="w-3.5 h-3.5 text-amber-400" />
-            <span>Ferramentas de Áudio</span>
+            <Calculator className="w-3.5 h-3.5 text-amber-400" />
+            <span>Calculadora & Áudio</span>
           </button>
 
           <button
@@ -339,7 +353,7 @@ export function TopNavigation({
       </div>
 
       {/* ROW 2: Primary Navigation Tabs (Smooth horizontal scrolling on mobile/desktop) */}
-      <nav className="px-2 sm:px-6 py-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar bg-[#09090b]">
+      <nav className="px-2 sm:px-6 pt-1.5 pb-2 flex items-center gap-1 overflow-x-auto custom-nav-scrollbar bg-[#09090b]">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -369,7 +383,7 @@ export function TopNavigation({
 
       {/* ROW 3: Sub-Buttons Bar (Contextual dynamic filters for instantaneous loading & rapid switching) */}
       {subNavItems.length > 0 && (
-        <div className="px-3 sm:px-6 py-1.5 bg-[#121215] border-t border-zinc-800/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+        <div className="px-3 sm:px-6 pt-1.5 pb-2 bg-[#121215] border-t border-zinc-800/60 flex items-center gap-1.5 overflow-x-auto custom-nav-scrollbar text-xs">
           <span className="text-[11px] font-medium text-zinc-500 shrink-0 uppercase tracking-wider pl-1 mr-1">
             Filtro:
           </span>

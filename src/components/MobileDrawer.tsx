@@ -15,6 +15,7 @@ import {
   Library,
   BarChart3,
   Settings,
+  Calculator,
   Plus,
   Activity,
   Headphones,
@@ -76,6 +77,7 @@ export function MobileDrawer({
       items: [
         { id: 'chains' as AppPage, label: '🎛️ Guia de Cadeias', icon: GitMerge },
         { id: 'diagnosis' as AppPage, label: 'Diagnóstico ("Tenho um Problema")', icon: Stethoscope },
+        { id: 'tools' as AppPage, label: '🧮 Calculadora & Áudio', icon: Calculator },
         { id: 'plugins' as AppPage, label: 'Biblioteca de Plugins', icon: Plug },
       ],
     },

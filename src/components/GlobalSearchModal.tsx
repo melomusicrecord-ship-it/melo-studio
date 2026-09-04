@@ -12,6 +12,7 @@ import {
   ArrowRight,
   FlaskConical,
   Library,
+  Calculator,
 } from 'lucide-react';
 import {
   Project,
@@ -234,6 +235,29 @@ export function GlobalSearchModal({
         });
       }
     });
+
+    // Tools & Audio Calculator
+    if (
+      q.includes('calc') ||
+      q.includes('delay') ||
+      q.includes('reverb') ||
+      q.includes('pitch') ||
+      q.includes('stretch') ||
+      q.includes('hz') ||
+      q.includes('frequ') ||
+      q.includes('tempo') ||
+      q.includes('ms') ||
+      q.includes('808')
+    ) {
+      found.push({
+        id: 'audio-tools',
+        title: 'Calculadora de Estúdio & Ferramentas de Áudio',
+        subtitle: 'BPM para ms (Delay/Reverb), Notas para Hz (808s) e Conversor de Pitch/Tempo',
+        category: 'Ferramentas',
+        page: 'tools',
+        icon: Calculator,
+      });
+    }
 
     return found.slice(0, 15);
   }, [query, projects, chains, plugins, artists, instrumentals, sessions, experiences, library]);

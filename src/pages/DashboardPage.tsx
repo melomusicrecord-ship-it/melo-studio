@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Star,
   Sparkles,
+  Calculator,
 } from 'lucide-react';
 import {
   Project,
@@ -343,13 +344,21 @@ export function DashboardPage({
               )}
             </div>
 
-            <div className="pt-4 mt-4 border-t border-zinc-800/80 flex items-center justify-between">
+            <div className="pt-4 mt-4 border-t border-zinc-800/80 flex items-center justify-between flex-wrap gap-2">
               <button
                 onClick={() => onNavigate('agenda')}
                 className="text-xs font-semibold text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-colors"
               >
                 <Calendar className="w-3.5 h-3.5 text-amber-400" />
                 <span>Ver Agenda Completa</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('tools')}
+                className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors"
+              >
+                <Calculator className="w-3.5 h-3.5" />
+                <span>🧮 Calculadora de Áudio</span>
               </button>
 
               <button
