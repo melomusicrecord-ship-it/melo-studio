@@ -421,6 +421,9 @@ export interface PluginKnowledgeItem {
   pluginName: string;
   manufacturer: string;
   category: string;
+  circuitTopology?: string; // ex: 'Óptico (T4 Optical Cell)', 'FET (Field Effect Transistor)', 'VCA', 'Digital Cirúrgico'
+  hardwareOrigin?: string; // ex: 'Teletronix LA-2A (1965)', 'UREI 1176LN Peak Limiter', etc.
+  keyParameters?: { name: string; description: string; optimalRange?: string }[];
   whatItDoes: string;
   whenToUse: string;
   whenNotToUse: string;
@@ -441,6 +444,46 @@ export interface PluginKnowledgeItem {
     veryHeavy?: string;
     safetyNotice?: string;
   };
+}
+
+export interface PluginComparison {
+  id: string;
+  title: string;
+  category: string;
+  pluginA: string;
+  pluginB: string;
+  summary: string;
+  conceptDifference: string;
+  comparisonPoints: {
+    label: string;
+    a: string;
+    b: string;
+  }[];
+  whenToPickA: string;
+  whenToPickB: string;
+  comboStrategy: string; // Como usá-los juntos na cadeia
+}
+
+export interface TrainerChallenge {
+  id: string;
+  title: string;
+  difficulty: 'Iniciante' | 'Intermediário' | 'Avançado' | 'Master';
+  category: string;
+  context: string; // O cenário de estúdio
+  question: string; // A decisão técnica a tomar
+  audioDescription: string; // O que o produtor está ouvindo
+  options: {
+    id: string;
+    plugin: string;
+    reason: string;
+    isCorrect: boolean;
+  }[];
+  correctExplanation: string; // Explicação aprofundada do porquê esse plugin é a escolha ideal
+  whyOthersFail: {
+    plugin: string;
+    why: string;
+  }[];
+  goldenRule: string; // Regra de ouro da engenharia de áudio
 }
 
 export interface VocalChainPreset {

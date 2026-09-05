@@ -399,6 +399,7 @@ function StudioApp() {
           <MeloVocalEngine
             plugins={plugins}
             projects={projects}
+            subFilter={subFilter}
             onAssociateWithProject={handleAssociateWithProject}
           />
         )}

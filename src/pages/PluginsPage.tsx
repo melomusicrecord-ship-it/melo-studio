@@ -1,4 +1,4 @@
-import { useState, useMemo, type FormEvent } from 'react';
+import { useState, useMemo, useEffect, type FormEvent } from 'react';
 import {
   Plug,
   Plus,
@@ -13,10 +13,17 @@ import {
   X,
   Check,
   Tag,
+  BookOpen,
+  Scale,
+  Zap,
+  Layers,
 } from 'lucide-react';
 import { PluginItem, PluginCategory } from '../types';
 import { useToast } from '../components/Toast';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { PluginGuideView } from '../components/plugins-guide/PluginGuideView';
+import { PluginVersusView } from '../components/plugins-guide/PluginVersusView';
+import { PluginTrainerView } from '../components/plugins-guide/PluginTrainerView';
 
 interface PluginsPageProps {
   plugins: PluginItem[];
@@ -77,6 +84,33 @@ export function PluginsPage({
   onDeletePlugin,
 }: PluginsPageProps) {
   const { showToast } = useToast();
+
+  const [activeViewMode, setActiveViewMode] = useState<'inventory' | 'guide' | 'versus' | 'trainer'>(
+    subFilter === 'guide'
+      ? 'guide'
+      : subFilter === 'versus'
+      ? 'versus'
+      : subFilter === 'trainer'
+      ? 'trainer'
+      : 'inventory'
+  );
+  const [versusPlugin, setVersusPlugin] = useState<string>('Waves CLA-76');
+
+  useEffect(() => {
+    if (subFilter === 'guide') setActiveViewMode('guide');
+    else if (subFilter === 'versus') setActiveViewMode('versus');
+    else if (subFilter === 'trainer') setActiveViewMode('trainer');
+    else if (
+      subFilter === 'all' ||
+      subFilter === 'owned' ||
+      subFilter === 'favorites' ||
+      subFilter === 'mostUsed' ||
+      subFilter.startsWith('cat-')
+    ) {
+      setActiveViewMode('inventory');
+    }
+  }, [subFilter]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -199,8 +233,100 @@ export function PluginsPage({
 
   return (
     <div className="space-y-6">
-      {/* Top Controls: Search and Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Primary Section Mode Selector */}
+      <div className="bg-[#121216] p-1.5 rounded-2xl border border-zinc-800/80 flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
+        <button
+          onClick={() => setActiveViewMode('inventory')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeViewMode === 'inventory'
+              ? 'bg-amber-500 text-zinc-950 shadow-md font-bold'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          <Plug className="w-4 h-4" />
+          <span>Meu Inventário</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+            activeViewMode === 'inventory' ? 'bg-zinc-950/20 text-zinc-950 font-bold' : 'bg-zinc-800 text-zinc-400'
+          }`}>
+            {plugins.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewMode('guide')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeViewMode === 'guide'
+              ? 'bg-amber-500 text-zinc-950 shadow-md font-bold'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Enciclopédia & O Que Cada Faz</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+            activeViewMode === 'guide' ? 'bg-zinc-950/20 text-zinc-950 font-bold' : 'bg-amber-400/10 text-amber-400'
+          }`}>
+            30+ Fichas
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewMode('versus')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeViewMode === 'versus'
+              ? 'bg-amber-500 text-zinc-950 shadow-md font-bold'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          <Scale className="w-4 h-4" />
+          <span>Comparador Técnico (A vs B)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveViewMode('trainer')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeViewMode === 'trainer'
+              ? 'bg-amber-500 text-zinc-950 shadow-md font-bold'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          <Zap className="w-4 h-4" />
+          <span>Treinador de Ouvido & Desafios</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+            activeViewMode === 'trainer' ? 'bg-zinc-950/20 text-zinc-950 font-bold' : 'bg-emerald-500/20 text-emerald-400'
+          }`}>
+            Interativo
+          </span>
+        </button>
+      </div>
+
+      {activeViewMode === 'guide' && (
+        <PluginGuideView
+          onSelectForVersus={(name) => {
+            setVersusPlugin(name);
+            setActiveViewMode('versus');
+          }}
+          onOpenTrainer={() => setActiveViewMode('trainer')}
+        />
+      )}
+
+      {activeViewMode === 'versus' && (
+        <PluginVersusView
+          initialPluginName={versusPlugin}
+          onOpenTrainer={() => setActiveViewMode('trainer')}
+        />
+      )}
+
+      {activeViewMode === 'trainer' && (
+        <PluginTrainerView
+          onOpenGuide={() => setActiveViewMode('guide')}
+          onOpenVersus={() => setActiveViewMode('versus')}
+        />
+      )}
+
+      {activeViewMode === 'inventory' && (
+        <>
+          {/* Top Controls: Search and Filters */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 flex-1">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -368,6 +494,8 @@ export function PluginsPage({
           <Plug className="w-8 h-8 mx-auto mb-2 text-zinc-600" />
           <p>Nenhum plugin encontrado com os filtros selecionados.</p>
         </div>
+      )}
+        </>
       )}
 
       {/* Create / Edit Plugin Modal */}

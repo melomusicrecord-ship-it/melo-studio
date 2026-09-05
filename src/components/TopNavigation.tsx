@@ -112,7 +112,9 @@ export function TopNavigation({
           { id: 'flow', label: '📚 16 Etapas' },
           { id: 'diagnosis', label: '🎯 Diagnóstico Vocal' },
           { id: 'frequency', label: '📊 Mapa de Frequências' },
-          { id: 'plugins', label: '📖 Banco de Plugins' },
+          { id: 'plugins', label: '📖 Guia de Plugins' },
+          { id: 'versus', label: '⚖️ Versus (A vs B)' },
+          { id: 'trainer', label: '⚡ Treinador' },
           { id: 'checklist', label: '✅ Check Final & Master' },
         ];
       case 'chains':
@@ -131,6 +133,9 @@ export function TopNavigation({
       case 'plugins':
         return [
           { id: 'all', label: 'Todos os Plugins' },
+          { id: 'guide', label: '📘 Guia Pedagógico & O Que Faz' },
+          { id: 'versus', label: '⚖️ Versus (Plugin A vs B)' },
+          { id: 'trainer', label: '⚡ Treinador & Desafios' },
           { id: 'owned', label: '☑️ Eu Tenho' },
           { id: 'favorites', label: '⭐ Favoritos' },
           { id: 'mostUsed', label: '🔥 Mais Usados' },

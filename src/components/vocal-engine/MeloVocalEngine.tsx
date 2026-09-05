@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Mic,
   Sparkles,
@@ -16,6 +16,8 @@ import {
   Download,
   Upload,
   Check,
+  Scale,
+  Zap,
 } from 'lucide-react';
 import {
   VocalChainPreset,
@@ -35,25 +37,42 @@ import { VocalFlowGuide } from './VocalFlowGuide';
 import { VocalFinalChecklistModal } from './VocalFinalChecklistModal';
 import { PluginDetailModal } from './PluginDetailModal';
 import { VocalGeneratorModal } from './VocalGeneratorModal';
+import { PluginGuideView } from '../plugins-guide/PluginGuideView';
+import { PluginVersusView } from '../plugins-guide/PluginVersusView';
+import { PluginTrainerView } from '../plugins-guide/PluginTrainerView';
 import { useToast } from '../Toast';
 
 interface MeloVocalEngineProps {
   plugins: PluginItem[];
   projects?: Project[];
+  subFilter?: string;
   onAssociateWithProject?: (projectId: string, chainTarget: string, chainTitle: string) => Promise<void>;
 }
 
 export function MeloVocalEngine({
   plugins,
   projects = [],
+  subFilter,
   onAssociateWithProject,
 }: MeloVocalEngineProps) {
   const { showToast } = useToast();
 
   // Engine Active Sub-View Tab
   const [activeTab, setActiveTab] = useState<
-    'chain' | 'flow' | 'diagnosis' | 'frequency' | 'plugins' | 'checklist'
-  >('chain');
+    'chain' | 'flow' | 'diagnosis' | 'frequency' | 'plugins' | 'versus' | 'trainer' | 'checklist'
+  >(
+    subFilter && ['chain', 'flow', 'diagnosis', 'frequency', 'plugins', 'versus', 'trainer', 'checklist'].includes(subFilter)
+      ? (subFilter as any)
+      : 'chain'
+  );
+
+  const [versusPluginA, setVersusPluginA] = useState<string>('Waves CLA-76');
+
+  useEffect(() => {
+    if (subFilter && ['chain', 'flow', 'diagnosis', 'frequency', 'plugins', 'versus', 'trainer', 'checklist'].includes(subFilter)) {
+      setActiveTab(subFilter as any);
+    }
+  }, [subFilter]);
 
   // Active Chain Preset
   const [activePreset, setActivePreset] = useState<VocalChainPreset>(VOCAL_STYLE_PRESETS[0]);
@@ -193,7 +212,9 @@ export function MeloVocalEngine({
           { id: 'flow', label: '📚 16 Etapas do Vocal', desc: 'Guia definitivo' },
           { id: 'diagnosis', label: '🎯 Diagnóstico Vocal', desc: '22 problemas reais' },
           { id: 'frequency', label: '📊 Mapa de Frequências', desc: '20Hz a 20kHz' },
-          { id: 'plugins', label: '📖 Banco de Plugins', desc: 'Waves & FabFilter' },
+          { id: 'plugins', label: '📖 Guia de Plugins', desc: 'O que cada um faz' },
+          { id: 'versus', label: '⚖️ Versus (A vs B)', desc: 'Comparador técnico' },
+          { id: 'trainer', label: '⚡ Treinador', desc: 'Desafios reais de mix' },
           { id: 'checklist', label: '✅ Check Final & Master', desc: 'Auditoria técnica' },
         ].map((tab) => (
           <button
@@ -243,81 +264,27 @@ export function MeloVocalEngine({
       )}
 
       {activeTab === 'plugins' && (
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="rounded-2xl bg-[#121216] border border-zinc-800 p-5 sm:p-6 space-y-3">
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
-              <BookOpen className="w-4 h-4" />
-              <span>Base de Conhecimento Técnico • FabFilter, Waves & Clássicos</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              📖 Enciclopédia de Plugins Vocais
-            </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed max-w-3xl">
-              Aprenda o propósito exato, dosagens recomendadas, perigos de sobreprocessamento e alternativas para cada processador.
-            </p>
+        <PluginGuideView
+          onSelectForVersus={(pluginName) => {
+            setVersusPluginA(pluginName);
+            setActiveTab('versus');
+          }}
+          onOpenTrainer={() => setActiveTab('trainer')}
+        />
+      )}
 
-            {/* Search and Manufacturer filter */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={pluginSearchTerm}
-                  onChange={(e) => setPluginSearchTerm(e.target.value)}
-                  placeholder="Pesquisar plugin (ex: Pro-Q 3, CLA-76, R-Vox, Saturn 2, H-Delay)..."
-                  className="w-full bg-zinc-950 border border-zinc-750 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
+      {activeTab === 'versus' && (
+        <PluginVersusView
+          initialPluginName={versusPluginA}
+          onOpenTrainer={() => setActiveTab('trainer')}
+        />
+      )}
 
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                {['all', 'FabFilter', 'Waves', 'Soundtoys', 'Valhalla DSP'].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setPluginManufacturerFilter(m)}
-                    className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors border ${
-                      pluginManufacturerFilter === m
-                        ? 'bg-amber-500 text-black border-amber-400 font-bold'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {m === 'all' ? 'Todos os Fabricantes' : m}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Plugin Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPluginKnowledge.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedPluginForModal(item.pluginName)}
-                className="p-5 rounded-2xl bg-[#121216] border border-zinc-800 hover:border-amber-500/50 hover:bg-[#15151b] cursor-pointer transition-all flex flex-col justify-between space-y-3"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-bold text-white text-base tracking-tight">{item.pluginName}</h3>
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      {item.manufacturer}
-                    </span>
-                  </div>
-                  <span className="text-xs text-zinc-500 font-medium">{item.category}</span>
-
-                  <p className="text-zinc-300 text-xs mt-2 line-clamp-3 leading-relaxed">
-                    {item.whatItDoes}
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-zinc-800 flex items-center justify-between text-xs">
-                  <span className="text-zinc-400 text-[11px]">Ver guia pedagógico completo</span>
-                  <span className="text-amber-400 font-bold">Abrir ficha →</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {activeTab === 'trainer' && (
+        <PluginTrainerView
+          onOpenGuide={() => setActiveTab('plugins')}
+          onOpenVersus={() => setActiveTab('versus')}
+        />
       )}
 
       {/* Generator Modal */}
