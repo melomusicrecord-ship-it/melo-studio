@@ -28,6 +28,7 @@ import {
   JournalEntry,
 } from '../types';
 import { AppPage } from '../components/TopNavigation';
+import { QuickAudioTipsCard } from '../components/dashboard/QuickAudioTipsCard';
 
 interface DashboardPageProps {
   settings: StudioSettings;
@@ -181,6 +182,12 @@ export function DashboardPage({
           );
         })}
       </div>
+
+      {/* Dicas Rápidas de Mixagem & Conceitos de Engenharia de Áudio (Curva de Aprendizado) */}
+      <QuickAudioTipsCard
+        onLearnPluginWithAI={(pluginName) => onNavigate('plugins', `ai-guide:${pluginName}`)}
+        onOpenKnowledgeBase={() => onNavigate('plugins', 'guide')}
+      />
 
       {/* Grid: Próxima Sessão & Resumo do Dia */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">

@@ -17,6 +17,7 @@ import {
   Scale,
   Zap,
   Layers,
+  Sparkles,
 } from 'lucide-react';
 import { PluginItem, PluginCategory } from '../types';
 import { useToast } from '../components/Toast';
@@ -24,6 +25,7 @@ import { ConfirmModal } from '../components/ConfirmModal';
 import { PluginGuideView } from '../components/plugins-guide/PluginGuideView';
 import { PluginVersusView } from '../components/plugins-guide/PluginVersusView';
 import { PluginTrainerView } from '../components/plugins-guide/PluginTrainerView';
+import { GeminiPluginLearningGuide } from '../components/plugins-guide/GeminiPluginLearningGuide';
 
 interface PluginsPageProps {
   plugins: PluginItem[];
@@ -85,8 +87,10 @@ export function PluginsPage({
 }: PluginsPageProps) {
   const { showToast } = useToast();
 
-  const [activeViewMode, setActiveViewMode] = useState<'inventory' | 'guide' | 'versus' | 'trainer'>(
-    subFilter === 'guide'
+  const [activeViewMode, setActiveViewMode] = useState<'inventory' | 'guide' | 'ai-guide' | 'versus' | 'trainer'>(
+    subFilter === 'ai-guide' || subFilter.startsWith('ai-guide:')
+      ? 'ai-guide'
+      : subFilter === 'guide'
       ? 'guide'
       : subFilter === 'versus'
       ? 'versus'
@@ -95,12 +99,23 @@ export function PluginsPage({
       : 'inventory'
   );
   const [versusPlugin, setVersusPlugin] = useState<string>('Waves CLA-76');
+  const [selectedAiPlugin, setSelectedAiPlugin] = useState<string>(
+    subFilter.startsWith('ai-guide:') ? subFilter.replace('ai-guide:', '') : 'FabFilter Pro-Q 3'
+  );
 
   useEffect(() => {
-    if (subFilter === 'guide') setActiveViewMode('guide');
-    else if (subFilter === 'versus') setActiveViewMode('versus');
-    else if (subFilter === 'trainer') setActiveViewMode('trainer');
-    else if (
+    if (subFilter === 'ai-guide') {
+      setActiveViewMode('ai-guide');
+    } else if (subFilter.startsWith('ai-guide:')) {
+      setSelectedAiPlugin(subFilter.replace('ai-guide:', ''));
+      setActiveViewMode('ai-guide');
+    } else if (subFilter === 'guide') {
+      setActiveViewMode('guide');
+    } else if (subFilter === 'versus') {
+      setActiveViewMode('versus');
+    } else if (subFilter === 'trainer') {
+      setActiveViewMode('trainer');
+    } else if (
       subFilter === 'all' ||
       subFilter === 'owned' ||
       subFilter === 'favorites' ||
@@ -253,6 +268,23 @@ export function PluginsPage({
         </button>
 
         <button
+          onClick={() => setActiveViewMode('ai-guide')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            activeViewMode === 'ai-guide'
+              ? 'bg-amber-500 text-zinc-950 shadow-md font-bold'
+              : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Guia de Aprendizado IA</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+            activeViewMode === 'ai-guide' ? 'bg-zinc-950/20 text-zinc-950 font-bold' : 'bg-amber-500/20 text-amber-300'
+          }`}>
+            Gemini
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveViewMode('guide')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
             activeViewMode === 'guide'
@@ -299,6 +331,17 @@ export function PluginsPage({
         </button>
       </div>
 
+      {activeViewMode === 'ai-guide' && (
+        <GeminiPluginLearningGuide
+          initialPluginName={selectedAiPlugin}
+          onSelectForVersus={(name) => {
+            setVersusPlugin(name);
+            setActiveViewMode('versus');
+          }}
+          onOpenTrainer={() => setActiveViewMode('trainer')}
+        />
+      )}
+
       {activeViewMode === 'guide' && (
         <PluginGuideView
           onSelectForVersus={(name) => {
@@ -306,6 +349,10 @@ export function PluginsPage({
             setActiveViewMode('versus');
           }}
           onOpenTrainer={() => setActiveViewMode('trainer')}
+          onLearnWithAI={(name) => {
+            setSelectedAiPlugin(name);
+            setActiveViewMode('ai-guide');
+          }}
         />
       )}
 
@@ -478,12 +525,26 @@ export function PluginsPage({
                 )}
               </button>
 
-              {plugin.mostUsed && (
-                <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-0.5">
-                  <Flame className="w-3 h-3" />
-                  <span>Em alta</span>
-                </span>
-              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setSelectedAiPlugin(plugin.name);
+                    setActiveViewMode('ai-guide');
+                  }}
+                  className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 transition-colors"
+                  title="Aprender sobre este plugin com a IA do Gemini"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Aprender com IA</span>
+                </button>
+
+                {plugin.mostUsed && (
+                  <span className="text-[10px] text-amber-400 font-semibold flex items-center gap-0.5">
+                    <Flame className="w-3 h-3" />
+                    <span>Em alta</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}

@@ -22,9 +22,10 @@ import { PluginKnowledgeItem } from '../../types';
 interface PluginGuideViewProps {
   onSelectForVersus?: (pluginName: string) => void;
   onOpenTrainer?: () => void;
+  onLearnWithAI?: (pluginName: string) => void;
 }
 
-export function PluginGuideView({ onSelectForVersus, onOpenTrainer }: PluginGuideViewProps) {
+export function PluginGuideView({ onSelectForVersus, onOpenTrainer, onLearnWithAI }: PluginGuideViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedManufacturer, setSelectedManufacturer] = useState<string>('all');
@@ -215,16 +216,29 @@ export function PluginGuideView({ onSelectForVersus, onOpenTrainer }: PluginGuid
               )}
             </div>
 
-            {onSelectForVersus && (
-              <button
-                onClick={() => onSelectForVersus(activePlugin.pluginName)}
-                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
-                title="Comparar este plugin contra outro lado a lado"
-              >
-                <Scale className="w-3.5 h-3.5" />
-                <span>Comparar no Versus</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+              {onLearnWithAI && (
+                <button
+                  onClick={() => onLearnWithAI(activePlugin.pluginName)}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/10 transition-colors"
+                  title="Abrir Guia Interativo com Mentor Gemini IA"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Aprender com IA</span>
+                </button>
+              )}
+
+              {onSelectForVersus && (
+                <button
+                  onClick={() => onSelectForVersus(activePlugin.pluginName)}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5"
+                  title="Comparar este plugin contra outro lado a lado"
+                >
+                  <Scale className="w-3.5 h-3.5" />
+                  <span>Comparar no Versus</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Topologia do Circuito & O Que Faz */}

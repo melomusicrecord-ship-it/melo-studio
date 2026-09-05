@@ -133,6 +133,7 @@ export function TopNavigation({
       case 'plugins':
         return [
           { id: 'all', label: 'Todos os Plugins' },
+          { id: 'ai-guide', label: '🤖 Guia de Aprendizado IA (Gemini)' },
           { id: 'guide', label: '📘 Guia Pedagógico & O Que Faz' },
           { id: 'versus', label: '⚖️ Versus (Plugin A vs B)' },
           { id: 'trainer', label: '⚡ Treinador & Desafios' },

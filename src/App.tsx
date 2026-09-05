@@ -147,10 +147,14 @@ function StudioApp() {
   // Navigation Handler
   const handleNavigate = (page: AppPage, id?: string) => {
     setCurrentPage(page);
-    setSubFilter('all');
-    if (id) {
+    if (id && (id.startsWith('ai-guide') || id === 'guide' || id === 'versus' || id === 'trainer' || id === 'owned' || id === 'favorites' || id === 'mostUsed' || id.startsWith('cat-'))) {
+      setSubFilter(id);
+      setSelectedEntityId(null);
+    } else if (id) {
+      setSubFilter('all');
       setSelectedEntityId(id);
     } else {
+      setSubFilter('all');
       setSelectedEntityId(null);
     }
     // Scroll smoothly to top on route change
