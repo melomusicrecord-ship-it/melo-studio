@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import {
   Sliders,
   FolderKanban,
@@ -22,7 +23,10 @@ import {
   Headphones,
   Sparkles,
   Monitor,
+  ChevronRight,
+  Layers,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { StudioSettings } from '../types';
 import { OfflineStatusIndicator } from './OfflineStatusIndicator';
 
@@ -59,6 +63,98 @@ interface TopNavigationProps {
   onOpenInstallModal: () => void;
 }
 
+// Module hierarchy categorization for mobile and visual context
+export const MODULE_METADATA: Record<
+  AppPage,
+  { category: string; categoryColor: string; description: string }
+> = {
+  dashboard: {
+    category: 'Principal',
+    categoryColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    description: 'Painel Central & Visão Geral',
+  },
+  projects: {
+    category: 'Produção Musical',
+    categoryColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    description: 'Projetos & Músicas',
+  },
+  artists: {
+    category: 'Produção Musical',
+    categoryColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    description: 'Artistas & Contatos',
+  },
+  sessions: {
+    category: 'Produção Musical',
+    categoryColor: 'text-rose-400 bg-rose-500/15 border-rose-500/30',
+    description: 'Sessões & Checklists',
+  },
+  'vocal-engine': {
+    category: 'Mixagem & Som',
+    categoryColor: 'text-sky-400 bg-sky-500/15 border-sky-500/30',
+    description: '16 Etapas & Cadeias Vocais',
+  },
+  chains: {
+    category: 'Mixagem & Som',
+    categoryColor: 'text-sky-400 bg-sky-500/15 border-sky-500/30',
+    description: 'Cadeias de Processamento & A/B',
+  },
+  diagnosis: {
+    category: 'Mixagem & Som',
+    categoryColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    description: 'Diagnóstico de Áudio',
+  },
+  tools: {
+    category: 'Mixagem & Som',
+    categoryColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    description: 'Calculadora de Delay, Hertz & Pitch',
+  },
+  plugins: {
+    category: 'Mixagem & Som',
+    categoryColor: 'text-purple-400 bg-purple-500/15 border-purple-500/30',
+    description: 'Biblioteca & Mentor IA',
+  },
+  instrumentals: {
+    category: 'Produção Musical',
+    categoryColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    description: 'Beats & Catálogo Instrumental',
+  },
+  agenda: {
+    category: 'Principal',
+    categoryColor: 'text-blue-400 bg-blue-500/15 border-blue-500/30',
+    description: 'Calendário & Prazos',
+  },
+  learning: {
+    category: 'Conhecimento',
+    categoryColor: 'text-yellow-400 bg-yellow-500/15 border-yellow-500/30',
+    description: 'Matérias & Evolução Técnica',
+  },
+  journal: {
+    category: 'Conhecimento',
+    categoryColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    description: 'Diário & Anotações de Produção',
+  },
+  experiences: {
+    category: 'Conhecimento',
+    categoryColor: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30',
+    description: 'Testes de Estúdio & Presets',
+  },
+  library: {
+    category: 'Conhecimento',
+    categoryColor: 'text-indigo-400 bg-indigo-500/15 border-indigo-500/30',
+    description: 'Arquivos, Referências & Manuais',
+  },
+  stats: {
+    category: 'Principal',
+    categoryColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    description: 'Estatísticas & Produtividade',
+  },
+  settings: {
+    category: 'Sistema',
+    categoryColor: 'text-zinc-400 bg-zinc-500/15 border-zinc-500/30',
+    description: 'Configurações de Áudio & Backup',
+  },
+};
+
 export function TopNavigation({
   currentPage,
   onPageChange,
@@ -72,6 +168,18 @@ export function TopNavigation({
   onToggleMobileDrawer,
   onOpenInstallModal,
 }: TopNavigationProps) {
+  const activeNavRef = useRef<HTMLButtonElement | null>(null);
+
+  // Smooth auto-scroll to keep active navigation item in view on mobile/desktop
+  useEffect(() => {
+    if (activeNavRef.current) {
+      activeNavRef.current.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [currentPage]);
   const mainNavItems = [
     { id: 'dashboard' as AppPage, label: 'Dashboard', icon: Sliders },
     { id: 'projects' as AppPage, label: 'Projetos', icon: FolderKanban },
@@ -370,38 +478,96 @@ export function TopNavigation({
         </div>
       </div>
 
-      {/* ROW 2: Primary Navigation Tabs (Smooth horizontal scrolling on mobile/desktop) */}
-      <nav className="px-2 sm:px-6 pt-1.5 pb-2 flex items-center gap-1 overflow-x-auto custom-nav-scrollbar bg-[#09090b]">
+      {/* MOBILE HIERARCHY BAR: Clearly indicates the active module & hierarchy depth on mobile screens */}
+      <div className="md:hidden px-3 py-1.5 bg-[#0e0e12] border-b border-zinc-800/80 flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-1.5 overflow-hidden">
+          <span
+            className={`text-[10px] font-mono px-2 py-0.5 rounded-md uppercase font-bold border shrink-0 ${
+              MODULE_METADATA[currentPage]?.categoryColor ||
+              'text-zinc-400 bg-zinc-800 border-zinc-750'
+            }`}
+          >
+            {MODULE_METADATA[currentPage]?.category || 'Módulo'}
+          </span>
+          <span className="text-zinc-500 text-[10px] shrink-0 font-mono">▸</span>
+          <div className="flex items-center gap-1 min-w-0 truncate">
+            <span className="font-bold text-white text-xs truncate">
+              {mainNavItems.find((i) => i.id === currentPage)?.label || currentPage}
+            </span>
+            {subFilter !== 'all' && (
+              <>
+                <ChevronRight className="w-3 h-3 text-zinc-500 shrink-0" />
+                <span className="text-amber-400 text-[11px] font-medium truncate">
+                  {subNavItems.find((s) => s.id === subFilter)?.label || subFilter}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={onToggleMobileDrawer}
+          className="flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 text-[11px] text-zinc-400 hover:text-white shrink-0 font-medium transition-colors"
+          title="Ver todos os módulos"
+        >
+          <Layers className="w-3 h-3 text-amber-400" />
+          <span>Trocar</span>
+        </button>
+      </div>
+
+      {/* ROW 2: Primary Navigation Tabs (With smooth motion active indicator & auto-scroll) */}
+      <nav className="px-2 sm:px-6 pt-1.5 pb-2 flex items-center gap-1 overflow-x-auto custom-nav-scrollbar bg-[#09090b] relative">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
           return (
             <button
               key={item.id}
+              ref={isActive ? activeNavRef : undefined}
               onClick={() => {
                 onPageChange(item.id);
                 onSubFilterChange('all');
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors shrink-0 ${
                 isActive
-                  ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/70'
+                  ? 'text-white'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
               }`}
             >
-              <Icon
-                className={`w-3.5 h-3.5 ${
-                  isActive ? 'text-amber-400' : 'text-zinc-500'
-                }`}
-              />
-              <span>{item.label}</span>
+              {/* Smooth Animated Highlight Pill */}
+              {isActive && (
+                <motion.div
+                  layoutId="activeNavTabHighlight"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  className="absolute inset-0 bg-zinc-800/90 border border-amber-500/40 rounded-lg shadow-sm shadow-amber-500/10"
+                />
+              )}
+
+              <span className="relative z-10 flex items-center gap-1.5">
+                <Icon
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    isActive ? 'text-amber-400' : 'text-zinc-500'
+                  }`}
+                />
+                <span className={isActive ? 'text-white font-bold' : 'text-zinc-400'}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <motion.span
+                    layoutId="activeNavDot"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b] ml-0.5 shrink-0"
+                  />
+                )}
+              </span>
             </button>
           );
         })}
       </nav>
 
-      {/* ROW 3: Sub-Buttons Bar (Contextual dynamic filters for instantaneous loading & rapid switching) */}
+      {/* ROW 3: Sub-Buttons Bar (Contextual dynamic filters with smooth sliding highlight) */}
       {subNavItems.length > 0 && (
-        <div className="px-3 sm:px-6 pt-1.5 pb-2 bg-[#121215] border-t border-zinc-800/60 flex items-center gap-1.5 overflow-x-auto custom-nav-scrollbar text-xs">
+        <div className="px-3 sm:px-6 pt-1.5 pb-2 bg-[#121215] border-t border-zinc-800/60 flex items-center gap-1.5 overflow-x-auto custom-nav-scrollbar text-xs relative">
           <span className="text-[11px] font-medium text-zinc-500 shrink-0 uppercase tracking-wider pl-1 mr-1">
             Filtro:
           </span>
@@ -411,13 +577,21 @@ export function TopNavigation({
               <button
                 key={sub.id}
                 onClick={() => onSubFilterChange(sub.id)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
+                className={`relative px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
                   isSubActive
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
-                    : 'bg-zinc-900/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80 border border-zinc-800'
+                    ? 'text-amber-300 font-semibold'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/80'
                 }`}
               >
-                {sub.label}
+                {/* Smooth Animated Filter Highlight Pill */}
+                {isSubActive && (
+                  <motion.div
+                    layoutId="activeSubFilterHighlight"
+                    transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                    className="absolute inset-0 bg-amber-500/20 border border-amber-500/50 rounded-full shadow-sm"
+                  />
+                )}
+                <span className="relative z-10">{sub.label}</span>
               </button>
             );
           })}

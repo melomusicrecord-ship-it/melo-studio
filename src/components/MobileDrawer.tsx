@@ -174,37 +174,64 @@ export function MobileDrawer({
 
         {/* Navigation Categories */}
         <div className="flex-1 p-3 space-y-4">
-          {sections.map((section) => (
-            <div key={section.title}>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 px-2 mb-1.5">
-                {section.title}
-              </div>
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = currentPage === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => navigateTo(item.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
-                        active
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold'
-                          : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900'
-                      }`}
-                    >
-                      <Icon
-                        className={`w-4 h-4 ${
-                          active ? 'text-amber-400' : 'text-zinc-500'
+          {sections.map((section) => {
+            const hasActiveItem = section.items.some((i) => i.id === currentPage);
+            return (
+              <div
+                key={section.title}
+                className={hasActiveItem ? 'rounded-xl bg-zinc-900/40 p-1.5 border border-zinc-800/80' : ''}
+              >
+                <div className="flex items-center justify-between px-2 mb-1.5">
+                  <span
+                    className={`text-[10px] uppercase font-bold tracking-wider ${
+                      hasActiveItem ? 'text-amber-400' : 'text-zinc-500'
+                    }`}
+                  >
+                    {section.title}
+                  </span>
+                  {hasActiveItem && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      Módulo Atual
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = currentPage === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => navigateTo(item.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                          active
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold shadow-sm shadow-amber-500/10'
+                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900'
                         }`}
-                      />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Icon
+                            className={`w-4 h-4 transition-colors ${
+                              active ? 'text-amber-400' : 'text-zinc-500'
+                            }`}
+                          />
+                          <span>{item.label}</span>
+                        </div>
+                        {active && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-amber-400 uppercase font-bold">
+                              Ativo
+                            </span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {onOpenInstallModal && (
             <div className="pt-2">

@@ -1,4 +1,12 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import {
+  Sliders,
+  FolderKanban,
+  Headphones,
+  Plug,
+  Menu,
+} from 'lucide-react';
+import { motion } from 'motion/react';
 import { AppPage, TopNavigation } from './components/TopNavigation';
 import { MobileDrawer } from './components/MobileDrawer';
 import { GlobalSearchModal } from './components/GlobalSearchModal';
@@ -383,7 +391,7 @@ function StudioApp() {
       />
 
       {/* Main Page Content - Fast responsive container */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 pb-24 md:pb-7">
         {currentPage === 'dashboard' && (
           <DashboardPage
             settings={settings}
@@ -553,6 +561,69 @@ function StudioApp() {
           </span>
         </div>
       </footer>
+
+      {/* Mobile Bottom Dock for fast thumb navigation and crystal-clear module hierarchy */}
+      <nav
+        id="mobile-bottom-dock"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0d]/95 backdrop-blur-xl border-t border-zinc-800/90 px-3 py-1.5 flex items-center justify-around shadow-2xl safe-area-inset-bottom"
+      >
+        {[
+          { id: 'dashboard' as AppPage, label: 'Dashboard', icon: Sliders },
+          { id: 'projects' as AppPage, label: 'Projetos', icon: FolderKanban },
+          { id: 'vocal-engine' as AppPage, label: 'Vocal', icon: Headphones },
+          { id: 'plugins' as AppPage, label: 'Plugins', icon: Plug },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavigate(item.id)}
+              className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+                isActive ? 'text-amber-400' : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="mobileBottomDockActive"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                  className="absolute inset-0 bg-amber-500/15 border border-amber-500/40 rounded-xl"
+                />
+              )}
+              <span className="relative z-10 flex flex-col items-center">
+                <Icon
+                  className={`w-4 h-4 mb-0.5 transition-colors ${
+                    isActive ? 'text-amber-400' : 'text-zinc-500'
+                  }`}
+                />
+                <span
+                  className={`text-[10px] tracking-tight ${
+                    isActive ? 'font-bold text-white' : 'font-medium text-zinc-400'
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Full Menu / Drawer Trigger */}
+        <button
+          onClick={() => setIsMobileDrawerOpen(true)}
+          className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            isMobileDrawerOpen ? 'text-amber-400' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+          title="Ver todos os 17 módulos"
+        >
+          <span className="relative z-10 flex flex-col items-center">
+            <Menu className="w-4 h-4 mb-0.5 text-zinc-400" />
+            <span className="text-[10px] tracking-tight font-medium text-zinc-400">
+              Menu
+            </span>
+          </span>
+        </button>
+      </nav>
 
       {/* Mobile Drawer */}
       <MobileDrawer
