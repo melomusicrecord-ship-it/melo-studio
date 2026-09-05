@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import {
   Sparkles,
   Search,
@@ -20,9 +20,11 @@ import {
   ShieldAlert,
   ArrowRight,
   Sliders,
+  WifiOff,
 } from 'lucide-react';
 import { EXTENDED_PLUGIN_KNOWLEDGE } from '../../data/pluginGuideData';
 import { useToast } from '../Toast';
+import { usePWA } from '../../hooks/usePWA';
 
 interface GeminiPluginGuideData {
   pluginName: string;
@@ -80,12 +82,16 @@ const TARGET_SOURCES = [
   'Mix Bus & Master',
 ];
 
+// In-memory client cache to protect Gemini API quota and provide instant retrieval
+const clientGuideCache = new Map<string, GeminiPluginGuideData>();
+
 export function GeminiPluginLearningGuide({
   initialPluginName,
   onSelectForVersus,
   onOpenTrainer,
 }: GeminiPluginLearningGuideProps) {
   const { showToast } = useToast();
+  const { isOnline } = usePWA();
 
   const [pluginQuery, setPluginQuery] = useState<string>(initialPluginName || 'FabFilter Pro-Q 3');
   const [selectedSource, setSelectedSource] = useState<string>('Vocal Lead (Principal)');
@@ -102,44 +108,58 @@ export function GeminiPluginLearningGuide({
   const [isSendingChat, setIsSendingChat] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
-  // Sync if initialPluginName prop changes
+  // Sync if initialPluginName prop changes or initial load (single call on mount)
+  const initialLoadDoneRef = useRef(false);
   useEffect(() => {
     if (initialPluginName) {
       setPluginQuery(initialPluginName);
       fetchPluginGuide(initialPluginName, selectedSource);
+      initialLoadDoneRef.current = true;
+    } else if (!initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true;
+      fetchPluginGuide(pluginQuery, selectedSource);
     }
   }, [initialPluginName]);
-
-  // Initial load
-  useEffect(() => {
-    fetchPluginGuide(pluginQuery, selectedSource);
-  }, []);
 
   // Fetch guide from server or fallback
   const fetchPluginGuide = async (name: string, source: string, question?: string) => {
     if (!name.trim()) return;
+    const cacheKey = `${name.toLowerCase().trim()}__${source.toLowerCase()}__${(question || '').toLowerCase()}`;
+
+    // Instant return if in client cache
+    if (clientGuideCache.has(cacheKey)) {
+      setGuideData(clientGuideCache.get(cacheKey)!);
+      setIsAiGenerated(true);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
 
-    try {
-      const res = await fetch('/api/gemini/plugin-guide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pluginName: name.trim(),
-          targetSource: source,
-          specificQuestion: question || undefined,
-        }),
-      });
+    // If offline, bypass network call directly
+    if (isOnline) {
+      try {
+        const res = await fetch('/api/gemini/plugin-guide', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pluginName: name.trim(),
+            targetSource: source,
+            specificQuestion: question || undefined,
+          }),
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        setGuideData(data);
-        setIsAiGenerated(true);
-        setIsLoading(false);
-        return;
+        if (res.ok) {
+          const data = await res.json();
+          clientGuideCache.set(cacheKey, data);
+          setGuideData(data);
+          setIsAiGenerated(true);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('API Gemini server offline ou erro de rede, usando base local:', err);
       }
-    } catch (err) {
-      console.warn('API Gemini server offline ou erro de rede, usando base estendida:', err);
     }
 
     // Fallback if API fails or offline
@@ -181,7 +201,7 @@ export function GeminiPluginLearningGuide({
       });
       setIsAiGenerated(false);
     } else {
-      // Generic fallback
+      // Generic intelligent fallback
       setGuideData({
         pluginName: name,
         headline: `Processador de áudio para modelagem sonora em estúdio.`,
@@ -268,6 +288,46 @@ ${guideData.equivalentsAndStock.join(', ')}
     setIsSendingChat(true);
 
     try {
+      if (!isOnline) {
+        // Instant dynamic offline knowledge engine
+        const currentPlugin = guideData?.pluginName || pluginQuery;
+        const matched = EXTENDED_PLUGIN_KNOWLEDGE.find(
+          (p) => p.pluginName.toLowerCase() === currentPlugin.toLowerCase()
+        );
+
+        let offlineReply = '';
+        const lowerQ = userText.toLowerCase();
+
+        if (lowerQ.includes('vocal') || lowerQ.includes('voz')) {
+          offlineReply = `🎙️ [Modo Offline - Mentor]: Para vocal usando ${currentPlugin}, ${
+            matched ? matched.practicalExample : 'calibre o ganho de entrada para bater em torno de -18 dBFS RMS. No equalizador, limpe os subgraves abaixo de 80 Hz com filtro High-Pass (18 dB/oct) e aplique compressão suave (2:1 a 4:1) reduzindo no máximo 3 a 5 dB nos picos.'
+          }`;
+        } else if (lowerQ.includes('808') || lowerQ.includes('grave') || lowerQ.includes('baixo') || lowerQ.includes('bass')) {
+          offlineReply = `🔊 [Modo Offline - Mentor]: No grave/808 com ${currentPlugin}: ${
+            matched?.whatItDoes || 'mantenha a faixa de 20 Hz a 120 Hz em Mono absoluto para evitar cancelamento de fase nos subwoofers. Destaque harmônicos entre 600 Hz e 900 Hz com saturação para o 808 ser audível em autofalantes de celular.'
+          }`;
+        } else if (lowerQ.includes('ratio') || lowerQ.includes('attack') || lowerQ.includes('release') || lowerQ.includes('compressor')) {
+          offlineReply = `🎛️ [Modo Offline - Mentor]: Ajuste de dinâmica para ${currentPlugin}: ${
+            matched?.suggestedDosage?.moderate || 'Ataque médio-lento (15 a 30 ms) preserva o punch/transiente inicial; liberação (release) rápida (50 a 100 ms) sincronizada com o andamento musical traz densidade sem abafar o sinal.'
+          }`;
+        } else {
+          offlineReply = `💡 [Modo Offline - Mentor]: Para o ${currentPlugin}: ${
+            matched
+              ? `${matched.whatItDoes}. Regra de ouro: ${matched.commonMistakes}. Dica prática: ${matched.practicalExample}`
+              : 'Sempre compare a mixagem com o botão Bypass e compensação de ganho em tempo real. Nunca adicione mais de 3 dB de ganho sem verificar a fase e o teto de headroom (-1 dB True Peak).'
+          }`;
+        }
+
+        const botMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          text: offlineReply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setChatMessages((prev) => [...prev, botMsg]);
+        return;
+      }
+
       const res = await fetch('/api/gemini/audio-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

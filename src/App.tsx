@@ -5,6 +5,7 @@ import {
   Headphones,
   Plug,
   Menu,
+  WifiOff,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { AppPage, TopNavigation } from './components/TopNavigation';
@@ -15,6 +16,7 @@ import { AudioBypassModal } from './components/AudioBypassModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { InstallPCModal } from './components/InstallPCModal';
 import { ToastProvider, useToast } from './components/Toast';
+import { usePWA } from './hooks/usePWA';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -64,6 +66,7 @@ import { X, Plus, GitMerge } from 'lucide-react';
 
 function StudioApp() {
   const { showToast } = useToast();
+  const { isOnline, isForcedOffline, toggleOfflineMode } = usePWA();
 
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>('dashboard');
@@ -119,7 +122,18 @@ function StudioApp() {
       if (p && p.length > 0) setProjects(p);
       if (a && a.length > 0) setArtists(a);
       if (sess && sess.length > 0) setSessions(sess);
-      if (c && c.length > 0) setChains(c);
+      if (c && c.length > 0) {
+        const existingIds = new Set(c.map((item) => item.id));
+        const missingInitial = INITIAL_CHAINS.filter((item) => !existingIds.has(item.id));
+        if (missingInitial.length > 0) {
+          missingInitial.forEach(async (chain) => {
+            await studioDB.saveChain(chain);
+          });
+          setChains([...c, ...missingInitial]);
+        } else {
+          setChains(c);
+        }
+      }
       if (pl && pl.length > 0) setPlugins(pl);
       if (inst && inst.length > 0) setInstrumentals(inst);
       if (j && j.length > 0) setJournal(j);
@@ -392,6 +406,49 @@ function StudioApp() {
 
       {/* Main Page Content - Fast responsive container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 pb-24 md:pb-7">
+        {!isOnline && (
+          <div
+            id="offline-session-banner"
+            className="mb-5 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-amber-500/15 via-zinc-900/90 to-zinc-900 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                <WifiOff className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-amber-300 flex items-center gap-2">
+                  <span>Modo 100% Offline Ativo</span>
+                  {isForcedOffline && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-normal">
+                      Manual
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] text-zinc-400">
+                  Todas as alterações em projetos, cadeias e ferramentas são salvas localmente no disco (IndexedDB).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {isForcedOffline && (
+                <button
+                  onClick={() => toggleOfflineMode()}
+                  className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold border border-zinc-700 transition-colors"
+                >
+                  Restaurar Conexão
+                </button>
+              )}
+              <button
+                onClick={() => handleNavigate('settings')}
+                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold border border-amber-500/40 transition-colors"
+              >
+                Gerenciar Cache
+              </button>
+            </div>
+          </div>
+        )}
+
         {currentPage === 'dashboard' && (
           <DashboardPage
             settings={settings}

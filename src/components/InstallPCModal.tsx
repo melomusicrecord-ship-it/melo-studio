@@ -21,7 +21,17 @@ interface InstallPCModalProps {
 }
 
 export function InstallPCModal({ isOpen, onClose }: InstallPCModalProps) {
-  const { isOnline, isInstalled, isInstallable, platform, promptInstall } = usePWA();
+  const {
+    isOnline,
+    isForcedOffline,
+    toggleOfflineMode,
+    isInstalled,
+    isInstallable,
+    isServiceWorkerActive,
+    promptInstall,
+    syncOfflineCache,
+    isSyncingCache,
+  } = usePWA();
   const [installing, setInstalling] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
@@ -102,6 +112,35 @@ export function InstallPCModal({ isOpen, onClose }: InstallPCModalProps) {
                 </>
               )}
             </div>
+          </div>
+
+          {/* Quick Offline Simulation Switch */}
+          <div className="p-3.5 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+                <span>Testar Modo 100% Offline no Navegador</span>
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                {isForcedOffline
+                  ? 'Modo Offline Forçado ativo. Todos os recursos operam pelo disco local.'
+                  : 'Ative para verificar o funcionamento do estúdio completamente desconectado da rede.'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => toggleOfflineMode()}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isForcedOffline ? 'bg-amber-500' : 'bg-zinc-700'
+              }`}
+              title={isForcedOffline ? 'Desativar modo offline' : 'Ativar modo offline'}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-zinc-950 shadow ring-0 transition duration-200 ease-in-out ${
+                  isForcedOffline ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Quick Install Action (if supported by browser) */}

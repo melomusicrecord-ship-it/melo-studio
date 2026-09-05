@@ -13,6 +13,8 @@ import {
   Monitor,
   Wifi,
   WifiOff,
+  RefreshCw,
+  Cpu,
 } from 'lucide-react';
 import { StudioSettings } from '../types';
 import { studioDB } from '../services/db';
@@ -34,7 +36,17 @@ export function SettingsPage({
   onOpenInstallModal,
 }: SettingsPageProps) {
   const { showToast } = useToast();
-  const { isOnline, isInstalled, isInstallable } = usePWA();
+  const {
+    isOnline,
+    actualOnline,
+    isForcedOffline,
+    toggleOfflineMode,
+    isInstalled,
+    isServiceWorkerActive,
+    cachedAssetsCount,
+    isSyncingCache,
+    syncOfflineCache,
+  } = usePWA();
   const [producerName, setProducerName] = useState(settings.producerName || 'Melo');
   const [studioName, setStudioName] = useState(settings.studioName || 'MELO STUDIO HUB');
   const [mainDaw, setMainDaw] = useState(settings.mainDaw || 'FL Studio');
@@ -250,10 +262,10 @@ export function SettingsPage({
           <div>
             <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
               <Monitor className="w-5 h-5 text-amber-400" />
-              <span>Instalar Aplicativo no PC (Modo 100% Offline)</span>
+              <span>Gerenciamento do Modo Offline & PC</span>
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Execute o MELO STUDIO HUB como um software nativo no teu desktop com janela própria e sem barras de navegador.
+              O MELO STUDIO HUB foi projetado para operar 100% desconectado da internet, mantendo todos os dados no teu disco local.
             </p>
           </div>
 
@@ -265,18 +277,90 @@ export function SettingsPage({
                   : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
               }`}
             >
-              {isOnline ? (
+              {isForcedOffline ? (
+                <>
+                  <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Modo Offline Forçado (Manual)</span>
+                </>
+              ) : isOnline ? (
                 <>
                   <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Online (navigator.onLine)</span>
+                  <span>Online (Pronto Offline)</span>
                 </>
               ) : (
                 <>
                   <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Modo Offline Ativo</span>
+                  <span>Modo Offline (Sem Conexão)</span>
                 </>
               )}
             </span>
+          </div>
+        </div>
+
+        {/* Offline Switch & Cache Sync Bar */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Toggle Offline Mode Card */}
+          <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                {isForcedOffline ? <WifiOff className="w-4 h-4 text-amber-400" /> : <Wifi className="w-4 h-4 text-emerald-400" />}
+                <span>Alternar / Forçar Modo Offline</span>
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                {isForcedOffline
+                  ? 'Desative para permitir conexão com serviços online.'
+                  : 'Ative para testar e usar o estúdio sem nenhuma rede externa.'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                toggleOfflineMode();
+                showToast(
+                  !isForcedOffline
+                    ? 'Modo 100% Offline ativado no estúdio!'
+                    : 'Modo Online reestabelecido!',
+                  'info'
+                );
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isForcedOffline ? 'bg-amber-500' : 'bg-zinc-700'
+              }`}
+              title={isForcedOffline ? 'Desativar modo offline' : 'Ativar modo offline'}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-zinc-950 shadow ring-0 transition duration-200 ease-in-out ${
+                  isForcedOffline ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Sync Offline Cache */}
+          <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <HardDrive className="w-4 h-4 text-sky-400" />
+                <span>Cache de Recursos em Disco</span>
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                {cachedAssetsCount > 0
+                  ? `${cachedAssetsCount} arquivos pré-carregados no disco`
+                  : 'App Shell salvo no Service Worker'}
+              </p>
+            </div>
+
+            <button
+              onClick={async () => {
+                await syncOfflineCache();
+                showToast('Recursos offline sincronizados no navegador!', 'success');
+              }}
+              disabled={isSyncingCache}
+              className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingCache ? 'animate-spin text-amber-400' : ''}`} />
+              <span>{isSyncingCache ? 'Sincronizando...' : 'Sincronizar Cache'}</span>
+            </button>
           </div>
         </div>
 

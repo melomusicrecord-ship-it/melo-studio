@@ -31,6 +31,10 @@ import {
   BookmarkCheck,
   ChevronDown,
   ChevronUp,
+  GitFork,
+  Split,
+  Radio,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   ProcessingChain,
@@ -121,6 +125,9 @@ export function ChainsPage({
   // Deletion confirm states
   const [deleteChainConfirm, setDeleteChainConfirm] = useState<{ id: string; name: string } | null>(null);
   const [deleteStepConfirm, setDeleteStepConfirm] = useState<{ index: number; name: string } | null>(null);
+
+  // View DAW Routing Mixer channels toggle (Inserts, Sends, Bus & Master)
+  const [showDawRoutingMap, setShowDawRoutingMap] = useState(false);
 
   // Update guide chain when target/style/goal/level changes, or when subFilter changes
   useEffect(() => {
@@ -689,15 +696,25 @@ export function ChainsPage({
           </div>
 
           {/* VISUAL SIGNAL FLOW DIAGRAM (SOLICITADO) */}
-          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-2">
                 <Workflow className="w-4 h-4 text-amber-400" />
                 Diagrama de Fluxo de Sinal (Ordem de Processamento)
               </h3>
-              <span className="text-[11px] text-zinc-500">
-                Clica num nó para saltar diretamente para o plugin
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowDawRoutingMap(!showDawRoutingMap)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer ${
+                    showDawRoutingMap
+                      ? 'bg-amber-500 text-black border-amber-400 shadow-md'
+                      : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:border-amber-500/50'
+                  }`}
+                >
+                  <GitFork className="w-3.5 h-3.5" />
+                  <span>{showDawRoutingMap ? 'Ocultar Canais da DAW' : 'Ver Canais da DAW (Inserts, Sends & Bus)'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Horizontal / Scrollable Visual Chain Diagram */}
@@ -743,7 +760,7 @@ export function ChainsPage({
                       </button>
 
                       {idx < guideChain.steps.length - 1 && (
-                        <ArrowRight className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                        <ArrowRight className="w-3.5 h-3.5 text-zinc-650 shrink-0" />
                       )}
                     </div>
                   );
@@ -755,11 +772,193 @@ export function ChainsPage({
                 <div className="px-3 py-2 rounded-xl bg-zinc-800 border border-zinc-700 text-center text-xs font-bold text-zinc-200">
                   <div className="text-[10px] uppercase text-zinc-400">Destino</div>
                   <div className="text-emerald-400 font-black">
-                    {guideChain.target === 'Master' ? 'Stereo Out' : 'Mix Bus'}
+                    {guideChain.target === 'Master' ? 'Stereo Out' : 'Vocal Bus'}
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* DAW Channel Topology Breakdown (Expandable) */}
+            {showDawRoutingMap && (
+              <div className="space-y-4 pt-3 border-t border-zinc-800">
+                <div className="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-emerald-500/10 p-3.5 rounded-xl border border-zinc-800 text-xs text-zinc-300 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Workflow className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>
+                      <strong>Estrutura de Roteamento no Mixer da DAW:</strong> Ordem estrita de inserção na pista da voz, ramificação para canais auxiliares de efeitos e somatório no bus ("bush").
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-amber-400 px-2 py-0.5 rounded bg-zinc-900 border border-zinc-700 shrink-0">
+                    Pro Routing
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                  {/* CANAL 1: INSERTS NA PISTA */}
+                  <div className="rounded-xl bg-zinc-950 border border-amber-500/30 p-4 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                        <span className="font-mono font-bold text-amber-400 text-xs uppercase flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                          01 • PISTA DA VOZ
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20">
+                          INSERTS
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400">
+                        Ordem serial de plugins inseridos diretamente no canal:
+                      </p>
+                      <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                        {guideChain.steps.map((st, idx) => (
+                          <div
+                            key={st.id}
+                            onClick={() => handleScrollToStep(st.id)}
+                            className="p-1.5 rounded bg-zinc-900 border border-zinc-800 hover:border-amber-500/40 cursor-pointer flex items-center justify-between gap-1.5"
+                          >
+                            <span className="font-mono text-amber-400 text-[10px] font-bold">
+                              {idx + 1}º
+                            </span>
+                            <span className="text-zinc-200 font-bold truncate flex-1">
+                              {st.pluginName}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 font-mono">
+                              Slot {st.order}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800 space-y-1 text-[11px]">
+                      <div className="flex items-center justify-between text-purple-300">
+                        <span className="flex items-center gap-1"><Split className="w-3 h-3" /> Send Aux Reverb:</span>
+                        <span className="font-mono text-zinc-400">-12 dB</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sky-300">
+                        <span className="flex items-center gap-1"><Split className="w-3 h-3" /> Send Aux Delay:</span>
+                        <span className="font-mono text-zinc-400">-16 dB</span>
+                      </div>
+                      <div className="flex items-center justify-between text-emerald-300 font-bold pt-0.5">
+                        <span>Fader Output:</span>
+                        <span className="font-mono text-amber-400">➜ VOCAL BUS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CANAL 2: CANAL AUXILIAR DE REVERB */}
+                  <div className="rounded-xl bg-zinc-950 border border-purple-500/30 p-4 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                        <span className="font-mono font-bold text-purple-300 text-xs uppercase flex items-center gap-1.5">
+                          <Radio className="w-3.5 h-3.5 text-purple-400" />
+                          02 • AUX REVERB
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 font-bold border border-purple-500/20">
+                          100% WET
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400">
+                        Cadeia do canal auxiliar de ambiência larga 3D:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="p-2 rounded bg-zinc-900 border border-purple-500/20">
+                          <span className="text-purple-300 font-bold block">1º EQ Abbey Road</span>
+                          <span className="text-[10px] text-zinc-400">Filtro HPF 500 Hz e LPF 7 kHz para não abafar a voz.</span>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900 border border-purple-500/20">
+                          <span className="text-purple-300 font-bold block">2º Reverb Estéreo Largo</span>
+                          <span className="text-[10px] text-zinc-400">Decay 2.8s, Pre-delay 35ms, Diffusion 100%.</span>
+                        </div>
+                        <div className="p-2 rounded bg-purple-950/40 border border-purple-500/40">
+                          <span className="text-amber-400 font-bold block">3º Compressor Sidechain (Ducking)</span>
+                          <span className="text-[10px] text-zinc-300">Linkado ao Lead Vocal. Abaixa 4 a 6 dB ao cantar.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-zinc-400">Saída do Reverb:</span>
+                      <span className="text-amber-400 font-mono">➜ VOCAL BUS</span>
+                    </div>
+                  </div>
+
+                  {/* CANAL 3: CANAL AUXILIAR DE DELAY */}
+                  <div className="rounded-xl bg-zinc-950 border border-sky-500/30 p-4 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                        <span className="font-mono font-bold text-sky-300 text-xs uppercase flex items-center gap-1.5">
+                          <Radio className="w-3.5 h-3.5 text-sky-400" />
+                          03 • AUX DELAY
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 font-bold border border-sky-500/20">
+                          100% WET
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400">
+                        Cadeia do canal auxiliar de eco rítmico:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="p-2 rounded bg-zinc-900 border border-sky-500/20">
+                          <span className="text-sky-300 font-bold block">1º EQ Passa-Banda</span>
+                          <span className="text-[10px] text-zinc-400">Filtro 400 Hz a 4.5 kHz para o eco soar vintage/limpo.</span>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900 border border-sky-500/20">
+                          <span className="text-sky-300 font-bold block">2º Delay Estéreo / Ping-Pong</span>
+                          <span className="text-[10px] text-zinc-400">1/8 Dotted ou 1/4 estéreo com feedback 25%.</span>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900 border border-sky-500/20">
+                          <span className="text-sky-300 font-bold block">3º Ducking / Gate Automático</span>
+                          <span className="text-[10px] text-zinc-400">O delay preenche apenas os vazios das frases.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-zinc-400">Saída do Delay:</span>
+                      <span className="text-amber-400 font-mono">➜ VOCAL BUS</span>
+                    </div>
+                  </div>
+
+                  {/* CANAL 4: VOCAL BUS (BUSH / SUBGRUPO) */}
+                  <div className="rounded-xl bg-zinc-950 border border-amber-500/40 p-4 space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                        <span className="font-mono font-bold text-amber-300 text-xs uppercase flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-amber-400" />
+                          04 • VOCAL BUS ("BUSH")
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                          SUBMIX
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400">
+                        Reúne Lead, Dobras e Retornos FX antes da Master:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
+                          <span className="text-white font-bold block">1º Dynamic EQ / Pro-MB</span>
+                          <span className="text-[10px] text-zinc-400">Controla ressonâncias quando múltiplas vozes cantam juntas.</span>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
+                          <span className="text-white font-bold block">2º SSL G-Master Buss Comp</span>
+                          <span className="text-[10px] text-zinc-400">Cola analógica (Attack 30ms, Release Auto, 1-2 dB GR).</span>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
+                          <span className="text-white font-bold block">3º Saturação de Fita (Saturn / J37)</span>
+                          <span className="text-[10px] text-zinc-400">Harmônicos aveludados para selar o pacote vocal.</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-zinc-400">Saída do Vocal Bus:</span>
+                      <span className="text-emerald-400 font-mono">➜ MASTER BUS (LIMITER)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ACTIVE GUIDE HEADER & ACTIONS */}
