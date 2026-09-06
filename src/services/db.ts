@@ -11,6 +11,8 @@ import {
   LibraryItem,
   StudioSettings,
   StudioStats,
+  StudioTransaction,
+  FutureEquipment,
 } from '../types';
 import {
   INITIAL_PROJECTS,
@@ -24,10 +26,12 @@ import {
   INITIAL_LEARNING,
   INITIAL_LIBRARY,
   INITIAL_SETTINGS,
+  INITIAL_TRANSACTIONS,
+  INITIAL_FUTURE_EQUIPMENT,
 } from '../data/initialData';
 
 const DB_NAME = 'MeloStudioHubDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 type StoreName =
   | 'projects'
@@ -40,7 +44,9 @@ type StoreName =
   | 'journal'
   | 'learning'
   | 'library'
-  | 'settings';
+  | 'settings'
+  | 'transactions'
+  | 'futureEquipment';
 
 class StudioDB {
   private dbPromise: Promise<IDBDatabase> | null = null;
@@ -96,6 +102,8 @@ class StudioDB {
           'learning',
           'library',
           'settings',
+          'transactions',
+          'futureEquipment',
         ];
 
         stores.forEach((storeName) => {
@@ -113,7 +121,7 @@ class StudioDB {
     try {
       const db = await this.getDB();
       await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(['settings', 'chains', 'plugins'], 'readonly');
+        const tx = db.transaction(['settings', 'chains', 'plugins', 'transactions', 'futureEquipment'], 'readonly');
         const settingsStore = tx.objectStore('settings');
         const request = settingsStore.get('current');
 
@@ -126,6 +134,12 @@ class StudioDB {
               reject(err);
             }
           } else {
+            // Check if new stores (transactions/futureEquipment) need initial seed
+            try {
+              await this.seedMissingStoresIfNeeded(db);
+            } catch (e) {
+              console.warn('Seed missing stores check:', e);
+            }
             resolve();
           }
         };
@@ -134,6 +148,30 @@ class StudioDB {
     } catch (error) {
       console.warn('Fallback: inicializando memória local');
       this.seedFallbackMemory();
+    }
+  }
+
+  private async seedMissingStoresIfNeeded(db: IDBDatabase): Promise<void> {
+    try {
+      const tx = db.transaction(['transactions', 'futureEquipment'], 'readwrite');
+      const txStore = tx.objectStore('transactions');
+      const eqStore = tx.objectStore('futureEquipment');
+
+      const countTxReq = txStore.count();
+      countTxReq.onsuccess = () => {
+        if (countTxReq.result === 0) {
+          INITIAL_TRANSACTIONS.forEach((t) => txStore.put(t));
+        }
+      };
+
+      const countEqReq = eqStore.count();
+      countEqReq.onsuccess = () => {
+        if (countEqReq.result === 0) {
+          INITIAL_FUTURE_EQUIPMENT.forEach((eq) => eqStore.put(eq));
+        }
+      };
+    } catch (e) {
+      // Ignored if already populated or in readonly context
     }
   }
 
@@ -152,6 +190,8 @@ class StudioDB {
         'learning',
         'library',
         'settings',
+        'transactions',
+        'futureEquipment',
       ],
       'readwrite'
     );
@@ -166,6 +206,8 @@ class StudioDB {
     INITIAL_JOURNAL.forEach((item) => tx.objectStore('journal').put(item));
     INITIAL_LEARNING.forEach((item) => tx.objectStore('learning').put(item));
     INITIAL_LIBRARY.forEach((item) => tx.objectStore('library').put(item));
+    INITIAL_TRANSACTIONS.forEach((item) => tx.objectStore('transactions').put(item));
+    INITIAL_FUTURE_EQUIPMENT.forEach((item) => tx.objectStore('futureEquipment').put(item));
     tx.objectStore('settings').put({ id: 'current', ...INITIAL_SETTINGS });
 
     return new Promise((resolve, reject) => {
@@ -186,6 +228,8 @@ class StudioDB {
       journal: [...INITIAL_JOURNAL],
       learning: [...INITIAL_LEARNING],
       library: [...INITIAL_LIBRARY],
+      transactions: [...INITIAL_TRANSACTIONS],
+      futureEquipment: [...INITIAL_FUTURE_EQUIPMENT],
     };
     this.settingsFallback = { ...INITIAL_SETTINGS };
   }

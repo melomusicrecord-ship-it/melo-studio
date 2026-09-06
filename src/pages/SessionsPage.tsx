@@ -13,6 +13,10 @@ import {
   Edit,
   X,
   Sparkles,
+  Music,
+  ExternalLink,
+  Link2,
+  Disc,
 } from 'lucide-react';
 import { Session, SessionStatus, SessionType, Artist, Project } from '../types';
 import { useToast } from '../components/Toast';
@@ -25,6 +29,8 @@ interface SessionsPageProps {
   subFilter: string;
   onSaveSession: (session: Session) => Promise<void>;
   onDeleteSession: (id: string) => Promise<void>;
+  onSaveProject?: (project: Project) => Promise<void>;
+  onNavigateToProject?: (projectId: string) => void;
 }
 
 const DEFAULT_CHECKLIST_ITEMS = {
@@ -50,6 +56,8 @@ export function SessionsPage({
   subFilter,
   onSaveSession,
   onDeleteSession,
+  onSaveProject,
+  onNavigateToProject,
 }: SessionsPageProps) {
   const { showToast } = useToast();
   const [selectedSessionId, setSelectedSessionId] = useState<string>(
@@ -61,6 +69,7 @@ export function SessionsPage({
 
   // Form states
   const [formArtist, setFormArtist] = useState(artists[0]?.stageName || '');
+  const [formProjectId, setFormProjectId] = useState<string>('');
   const [formProject, setFormProject] = useState(projects[0]?.name || '');
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
   const [formStartTime, setFormStartTime] = useState('14:00');
@@ -71,6 +80,38 @@ export function SessionsPage({
   const [formNotes, setFormNotes] = useState('');
 
   const activeSession = sessions.find((s) => s.id === selectedSessionId) || sessions[0] || null;
+
+  // Encontrar projeto vinculado à sessão ativa
+  const activeLinkedProject = useMemo(() => {
+    if (!activeSession) return null;
+    return projects.find(
+      (p) =>
+        (activeSession.projectId && p.id === activeSession.projectId) ||
+        (activeSession.projectName && p.name.toLowerCase() === activeSession.projectName.toLowerCase())
+    );
+  }, [activeSession, projects]);
+
+  const activeLinkedArtist = useMemo(() => {
+    if (!activeSession) return null;
+    return artists.find(
+      (a) =>
+        a.stageName.toLowerCase() === activeSession.artistName.toLowerCase() ||
+        (activeLinkedProject && a.stageName.toLowerCase() === activeLinkedProject.artist.toLowerCase())
+    );
+  }, [activeSession, activeLinkedProject, artists]);
+
+  // Projeto selecionado no formulário atual
+  const formSelectedProject = useMemo(() => {
+    return projects.find(
+      (p) => p.id === formProjectId || (formProject && p.name.toLowerCase() === formProject.toLowerCase())
+    );
+  }, [projects, formProjectId, formProject]);
+
+  const formSelectedArtist = useMemo(() => {
+    return artists.find(
+      (a) => a.stageName.toLowerCase() === formArtist.toLowerCase()
+    );
+  }, [artists, formArtist]);
 
   const filteredSessions = useMemo(() => {
     return sessions.filter((s) => {
@@ -84,21 +125,35 @@ export function SessionsPage({
 
   const openCreateModal = () => {
     setEditingSession(null);
-    setFormArtist(artists[0]?.stageName || '');
-    setFormProject(projects[0]?.name || '');
+    const firstProj = projects[0];
+    if (firstProj) {
+      setFormProjectId(firstProj.id);
+      setFormProject(firstProj.name);
+      setFormArtist(firstProj.artist);
+      setFormObjective(`Gravação de Vocais para "${firstProj.name}" (${firstProj.key}, ${firstProj.bpm} BPM)`);
+      const matchedArtist = artists.find((a) => a.stageName.toLowerCase() === firstProj.artist.toLowerCase());
+      setFormNotes(
+        `🎵 Tom: ${firstProj.key} | BPM: ${firstProj.bpm} | Estilo: ${firstProj.style} | Microfone Recomendado: ${matchedArtist?.preferredMic || 'Neumann U87'}`
+      );
+    } else {
+      setFormProjectId('');
+      setFormArtist(artists[0]?.stageName || '');
+      setFormProject('');
+      setFormObjective('');
+      setFormNotes('');
+    }
     setFormDate(new Date().toISOString().split('T')[0]);
     setFormStartTime('14:00');
     setFormEndTime('18:00');
     setFormType('Gravação');
     setFormStatus('Confirmada');
-    setFormObjective('');
-    setFormNotes('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (s: Session) => {
     setEditingSession(s);
     setFormArtist(s.artistName);
+    setFormProjectId(s.projectId || '');
     setFormProject(s.projectName || '');
     setFormDate(s.date);
     setFormStartTime(s.startTime);
@@ -110,6 +165,30 @@ export function SessionsPage({
     setIsModalOpen(true);
   };
 
+  const handleSelectProjectInForm = (projId: string) => {
+    setFormProjectId(projId);
+    if (!projId) {
+      setFormProject('');
+      return;
+    }
+    const p = projects.find((proj) => proj.id === projId);
+    if (p) {
+      setFormProject(p.name);
+      setFormArtist(p.artist);
+      const matchedArtist = artists.find(
+        (a) => a.stageName.toLowerCase() === p.artist.toLowerCase()
+      );
+      if (!formObjective || formObjective.startsWith('Gravação de')) {
+        setFormObjective(`Gravação de Vocais para "${p.name}" (${p.key}, ${p.bpm} BPM)`);
+      }
+      if (!formNotes) {
+        setFormNotes(
+          `🎵 Tom: ${p.key} | BPM: ${p.bpm} | Estilo: ${p.style} | Microfone Recomendado: ${matchedArtist?.preferredMic || 'Neumann U87'}`
+        );
+      }
+    }
+  };
+
   const handleSaveForm = async (e: FormEvent) => {
     e.preventDefault();
     if (!formArtist.trim() || !formObjective.trim()) {
@@ -117,8 +196,20 @@ export function SessionsPage({
       return;
     }
 
+    const linkedProj = projects.find(
+      (p) =>
+        (formProjectId && p.id === formProjectId) ||
+        (formProject && p.name.toLowerCase() === formProject.trim().toLowerCase())
+    );
+
+    const linkedArt = artists.find(
+      (a) => a.stageName.toLowerCase() === formArtist.trim().toLowerCase()
+    );
+
     const newSession: Session = {
       id: editingSession ? editingSession.id : 'sess-' + Date.now(),
+      projectId: linkedProj?.id || (formProjectId ? formProjectId : undefined),
+      artistId: linkedArt?.id,
       artistName: formArtist.trim(),
       projectName: formProject.trim(),
       date: formDate,
@@ -216,9 +307,34 @@ export function SessionsPage({
                   <h3 className="font-bold text-white text-sm">
                     {session.artistName}
                   </h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    {session.type} • {session.projectName || 'Música em Produção'}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-zinc-400 mt-0.5">
+                    <span>{session.type}</span>
+                    <span>•</span>
+                    <span className="text-zinc-200 font-semibold">{session.projectName || 'Música em Produção'}</span>
+                  </div>
+
+                  {/* Informações musicais interligadas no card */}
+                  {(() => {
+                    const linked = projects.find(
+                      (p) =>
+                        (session.projectId && p.id === session.projectId) ||
+                        (session.projectName && p.name.toLowerCase() === session.projectName.toLowerCase())
+                    );
+                    if (!linked) return null;
+                    return (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-amber-300 font-mono font-bold border border-zinc-700">
+                          Tom: {linked.key}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono border border-zinc-700">
+                          {linked.bpm} BPM
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                          {linked.style}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   <p className="text-xs text-zinc-300 line-clamp-2 mt-2 bg-zinc-950/40 p-2 rounded-lg border border-zinc-850">
                     {session.objective}
@@ -284,6 +400,55 @@ export function SessionsPage({
                   <p className="text-zinc-400 mt-2 italic text-[11px]">Obs: {activeSession.notes}</p>
                 )}
               </div>
+
+              {/* Informações Técnicas Interligadas da Música */}
+              {activeLinkedProject && (
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border border-amber-500/30 text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-amber-300 flex items-center gap-1.5 text-xs">
+                      <Music className="w-3.5 h-3.5 text-amber-400" />
+                      Especificações Musicais Interligadas
+                    </span>
+                    {onNavigateToProject && (
+                      <button
+                        onClick={() => onNavigateToProject(activeLinkedProject.id)}
+                        className="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold hover:underline"
+                        title="Abrir detalhes completos deste projeto no estúdio"
+                      >
+                        <span>Abrir Projeto no Estúdio</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    <div className="bg-zinc-950/60 p-2 rounded-lg border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Tom / Key:</span>
+                      <span className="text-xs font-bold text-amber-300 font-mono">{activeLinkedProject.key}</span>
+                    </div>
+                    <div className="bg-zinc-950/60 p-2 rounded-lg border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Tempo / BPM:</span>
+                      <span className="text-xs font-bold text-white font-mono">{activeLinkedProject.bpm} BPM</span>
+                    </div>
+                    <div className="bg-zinc-950/60 p-2 rounded-lg border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Gênero / Estilo:</span>
+                      <span className="text-xs font-semibold text-zinc-200">{activeLinkedProject.style}</span>
+                    </div>
+                    <div className="bg-zinc-950/60 p-2 rounded-lg border border-zinc-800">
+                      <span className="text-[10px] text-zinc-400 block">Mic Recomendado:</span>
+                      <span className="text-xs font-semibold text-emerald-300 truncate block">
+                        {activeLinkedArtist?.preferredMic || 'Neumann U87'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {activeLinkedArtist?.vocalTone && (
+                    <div className="text-[11px] text-zinc-400 pt-0.5">
+                      Timbre Vocal do Artista: <span className="text-zinc-200 font-medium">{activeLinkedArtist.vocalTone}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* 14. Checklist de Sessão Interativo */}
               <div className="space-y-4 pt-2">
@@ -412,34 +577,93 @@ export function SessionsPage({
             </div>
 
             <form onSubmit={handleSaveForm} className="p-5 space-y-4 text-xs">
+              <div className="space-y-3">
+                {/* Seleção de Projeto com Interligação Musical */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-zinc-300">
+                      Projeto Musical do Estúdio
+                    </label>
+                    <span className="text-[10px] text-amber-400 font-medium">
+                      🔗 Sincroniza Tom, BPM & Setup
+                    </span>
+                  </div>
+                  <select
+                    value={formProjectId}
+                    onChange={(e) => handleSelectProjectInForm(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-750 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-rose-500"
+                  >
+                    <option value="">— Sem projeto vinculado / Gravação avulsa —</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        🎵 {p.name} — {p.artist} ({p.style} • Tom: {p.key}, {p.bpm} BPM)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-zinc-300 mb-1">
+                      Artista *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formArtist}
+                      onChange={(e) => setFormArtist(e.target.value)}
+                      placeholder="Ex: Jay Santos"
+                      className="w-full bg-zinc-900 border border-zinc-750 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-rose-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-zinc-300 mb-1">
+                      Nome da Música / Projeto
+                    </label>
+                    <input
+                      type="text"
+                      value={formProject}
+                      onChange={(e) => setFormProject(e.target.value)}
+                      placeholder="Ex: Kizomba da Madrugada"
+                      className="w-full bg-zinc-900 border border-zinc-750 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-rose-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Preview de Dados Interligados da Música no Modal */}
+                {formSelectedProject && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1.5 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-amber-300 font-bold text-[11px]">
+                      <span className="flex items-center gap-1.5">
+                        <Music className="w-3.5 h-3.5" />
+                        Dados Interligados de "{formSelectedProject.name}"
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-mono">
+                        {formSelectedProject.style}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
+                      <div className="bg-zinc-900/80 p-1.5 rounded border border-zinc-800">
+                        <span className="text-zinc-500 block text-[9px] uppercase">Tom Musical:</span>
+                        <strong className="text-amber-300">{formSelectedProject.key}</strong>
+                      </div>
+                      <div className="bg-zinc-900/80 p-1.5 rounded border border-zinc-800">
+                        <span className="text-zinc-500 block text-[9px] uppercase">Tempo:</span>
+                        <strong className="text-white">{formSelectedProject.bpm} BPM</strong>
+                      </div>
+                      <div className="bg-zinc-900/80 p-1.5 rounded border border-zinc-800">
+                        <span className="text-zinc-500 block text-[9px] uppercase">Mic Recomendado:</span>
+                        <strong className="text-emerald-300 truncate block">
+                          {formSelectedArtist?.preferredMic || 'Neumann U87'}
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-zinc-300 mb-1">
-                    Artista *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formArtist}
-                    onChange={(e) => setFormArtist(e.target.value)}
-                    placeholder="Ex: Jay Santos"
-                    className="w-full bg-zinc-900 border border-zinc-750 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-zinc-300 mb-1">
-                    Projeto Associado
-                  </label>
-                  <input
-                    type="text"
-                    value={formProject}
-                    onChange={(e) => setFormProject(e.target.value)}
-                    placeholder="Ex: Kizomba da Madrugada"
-                    className="w-full bg-zinc-900 border border-zinc-750 rounded-xl px-3 py-2 text-zinc-100 focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-
                 <div>
                   <label className="block font-semibold text-zinc-300 mb-1">
                     Data da Sessão

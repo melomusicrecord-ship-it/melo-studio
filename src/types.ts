@@ -7,10 +7,85 @@ export type ProjectStatus =
   | 'Finalizado'
   | 'Arquivado';
 
+export type PaymentStatus =
+  | 'Pendente'
+  | 'Metade'
+  | 'Completo'
+  | 'Parcial';
+
+export type FinancialTransactionType = 'income' | 'expense';
+
+export type FinancialCategory =
+  | 'Pagamento de Projeto'
+  | 'Sessão de Gravação'
+  | 'Venda de Beat / Instrumental'
+  | 'Equipamento de Estúdio'
+  | 'Cabos & Acessórios'
+  | 'Software & Plugins'
+  | 'Manutenção & Reparos'
+  | 'Tratamento Acústico'
+  | 'Custos Operacionais'
+  | 'Aporte / Entrada Avulsa'
+  | 'Outro';
+
+export interface StudioTransaction {
+  id: string;
+  description: string;
+  amount: number;
+  type: FinancialTransactionType; // 'income' (entrou) | 'expense' (gasto)
+  category: FinancialCategory;
+  date: string; // YYYY-MM-DD
+  artistName?: string;
+  projectName?: string;
+  projectId?: string;
+  paymentMethod?: string; // 'MB Way' | 'Multicaixa' | 'Transferência Bancária' | 'Dinheiro' | 'Cartão' | 'PayPal'
+  equipmentTargetId?: string;
+  notes?: string;
+}
+
+export type EquipmentPriority = 'Alta' | 'Média' | 'Baixa';
+export type EquipmentStatus = 'Planejamento' | 'Poupando' | 'Pronto para Comprar' | 'Comprado';
+
+export interface FutureEquipment {
+  id: string;
+  name: string;
+  category:
+    | 'Microfone'
+    | 'Monitores'
+    | 'Interface / Placa'
+    | 'Pré-amp / Outboard'
+    | 'Fones'
+    | 'Acústica'
+    | 'Acessórios'
+    | 'Outro';
+  targetPrice: number;
+  allocatedAmount: number; // quanto já foi poupado / guardado especificamente para este item
+  priority: EquipmentPriority;
+  status: EquipmentStatus;
+  linkOrStore?: string;
+  notes?: string;
+  boughtDate?: string;
+}
+
+export interface ProjectBudget {
+  totalAmount: number; // Valor total orçado (ex: 250, 300)
+  paidAmount: number; // Valor já pago pelo artista (ex: 125, 250, 0)
+  percentagePaid: number; // 0% a 100% (ex: 100 para completo, 50 para metade, etc.)
+  paymentStatus: PaymentStatus; // 'Completo' | 'Metade' | 'Pendente' | 'Parcial'
+  currency?: string; // '€' | '$' | 'Kz' | 'R$'
+  musicDelivered: boolean; // Se o artista já recebeu a música ou não (true / false)
+  deliveryDate?: string; // Data da entrega da música
+  deliveryStatusNotes?: string; // Ex: 'Entregue em WAV 24-bit e MP3 320kbps'
+  paymentDate?: string; // Data do último pagamento recebido
+  paymentMethod?: string; // 'MB Way' | 'Multicaixa' | 'Transferência Bancária' | 'Dinheiro' | 'PayPal'
+  notes?: string; // Notas ou acordo financeiro
+}
+
 export interface Project {
   id: string;
   name: string;
   artist: string;
+  artistId?: string;
   style: string;
   bpm: number;
   key: string;
@@ -32,6 +107,7 @@ export interface Project {
     masterChain?: string;
   };
   vocalNotes?: string;
+  budget?: ProjectBudget;
 }
 
 export interface Artist {

@@ -206,12 +206,19 @@ export function TopNavigation({
       case 'projects':
         return [
           { id: 'all', label: 'Todos os Projetos' },
+          { id: 'budget', label: '💰 Orçamento dos Artistas' },
           { id: 'Ideia', label: '💡 Ideia' },
           { id: 'Produção', label: '🎹 Produção' },
           { id: 'Gravação', label: '🔴 Gravação' },
           { id: 'Mixagem', label: '🎛️ Mixagem' },
           { id: 'Masterização', label: '⚡ Masterização' },
           { id: 'Finalizado', label: '✅ Finalizado' },
+          { id: 'favorites', label: '⭐ Favoritos' },
+        ];
+      case 'artists':
+        return [
+          { id: 'all', label: 'Todos os Artistas' },
+          { id: 'budget', label: '💰 Orçamento dos Artistas' },
           { id: 'favorites', label: '⭐ Favoritos' },
         ];
       case 'vocal-engine':

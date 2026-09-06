@@ -26,9 +26,12 @@ import {
   Instrumental,
   StudioSettings,
   JournalEntry,
+  StudioTransaction,
+  FutureEquipment,
 } from '../types';
 import { AppPage } from '../components/TopNavigation';
 import { QuickAudioTipsCard } from '../components/dashboard/QuickAudioTipsCard';
+import { StudioFinancialWidget } from '../components/dashboard/StudioFinancialWidget';
 
 interface DashboardPageProps {
   settings: StudioSettings;
@@ -39,8 +42,11 @@ interface DashboardPageProps {
   plugins: PluginItem[];
   instrumentals: Instrumental[];
   journal: JournalEntry[];
+  transactions?: StudioTransaction[];
+  futureEquipment?: FutureEquipment[];
   onNavigate: (page: AppPage, id?: string) => void;
   onQuickAction: (action: string) => void;
+  onOpenBudgetModal?: (tab?: 'artists' | 'account' | 'equipment') => void;
 }
 
 export function DashboardPage({
@@ -52,8 +58,11 @@ export function DashboardPage({
   plugins,
   instrumentals,
   journal,
+  transactions = [],
+  futureEquipment = [],
   onNavigate,
   onQuickAction,
+  onOpenBudgetModal,
 }: DashboardPageProps) {
   const activeProjects = projects.filter(
     (p) => p.status !== 'Finalizado' && p.status !== 'Arquivado'
@@ -182,6 +191,20 @@ export function DashboardPage({
           );
         })}
       </div>
+
+      {/* Studio Financial Health & Equipment Fund Widget */}
+      <StudioFinancialWidget
+        transactions={transactions}
+        futureEquipment={futureEquipment}
+        projects={projects}
+        onOpenFinances={(tab) => {
+          if (onOpenBudgetModal) {
+            onOpenBudgetModal(tab || 'account');
+          } else {
+            onNavigate('projects', 'budget');
+          }
+        }}
+      />
 
       {/* Dicas Rápidas de Mixagem & Conceitos de Engenharia de Áudio (Curva de Aprendizado) */}
       <QuickAudioTipsCard

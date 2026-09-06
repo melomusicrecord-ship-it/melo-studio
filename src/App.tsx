@@ -49,6 +49,8 @@ import {
   JournalEntry,
   Experience,
   LibraryItem,
+  StudioTransaction,
+  FutureEquipment,
 } from './types';
 import {
   INITIAL_CHAINS,
@@ -61,6 +63,8 @@ import {
   INITIAL_JOURNAL,
   INITIAL_EXPERIENCES,
   INITIAL_LIBRARY,
+  INITIAL_TRANSACTIONS,
+  INITIAL_FUTURE_EQUIPMENT,
 } from './data/initialData';
 import { X, Plus, GitMerge } from 'lucide-react';
 
@@ -93,6 +97,8 @@ function StudioApp() {
   const [journal, setJournal] = useState<JournalEntry[]>(INITIAL_JOURNAL);
   const [experiences, setExperiences] = useState<Experience[]>(INITIAL_EXPERIENCES);
   const [library, setLibrary] = useState<LibraryItem[]>(INITIAL_LIBRARY);
+  const [transactions, setTransactions] = useState<StudioTransaction[]>(INITIAL_TRANSACTIONS);
+  const [futureEquipment, setFutureEquipment] = useState<FutureEquipment[]>(INITIAL_FUTURE_EQUIPMENT);
   const [isLoading, setIsLoading] = useState(true);
 
   // New Chain Modal Form State
@@ -105,7 +111,7 @@ function StudioApp() {
   const reloadAllData = useCallback(async () => {
     try {
       await studioDB.init();
-      const [s, p, a, sess, c, pl, inst, j, exp, lib] = await Promise.all([
+      const [s, p, a, sess, c, pl, inst, j, exp, lib, tx, eq] = await Promise.all([
         studioDB.getSettings(),
         studioDB.getProjects(),
         studioDB.getArtists(),
@@ -116,6 +122,8 @@ function StudioApp() {
         studioDB.getJournal(),
         studioDB.getExperiences(),
         studioDB.getLibrary(),
+        studioDB.getTransactions(),
+        studioDB.getFutureEquipment(),
       ]);
 
       if (s) setSettings(s);
@@ -139,6 +147,8 @@ function StudioApp() {
       if (j && j.length > 0) setJournal(j);
       if (exp && exp.length > 0) setExperiences(exp);
       if (lib && lib.length > 0) setLibrary(lib);
+      if (tx && tx.length > 0) setTransactions(tx);
+      if (eq && eq.length > 0) setFutureEquipment(eq);
 
       if (s && !s.onboarded) {
         setIsOnboardingOpen(true);
@@ -169,7 +179,20 @@ function StudioApp() {
   // Navigation Handler
   const handleNavigate = (page: AppPage, id?: string) => {
     setCurrentPage(page);
-    if (id && (id.startsWith('ai-guide') || id === 'guide' || id === 'versus' || id === 'trainer' || id === 'owned' || id === 'favorites' || id === 'mostUsed' || id.startsWith('cat-'))) {
+    if (
+      id &&
+      (id.startsWith('ai-guide') ||
+        id === 'guide' ||
+        id === 'versus' ||
+        id === 'trainer' ||
+        id === 'owned' ||
+        id === 'favorites' ||
+        id === 'mostUsed' ||
+        id.startsWith('cat-') ||
+        id === 'budget' ||
+        id === 'account' ||
+        id === 'equipment')
+    ) {
       setSubFilter(id);
       setSelectedEntityId(null);
     } else if (id) {
@@ -292,6 +315,68 @@ function StudioApp() {
   const handleSaveSettings = async (newSettings: StudioSettings) => {
     await studioDB.saveSettings(newSettings);
     setSettings(newSettings);
+  };
+
+  const handleSaveTransaction = async (tx: StudioTransaction) => {
+    await studioDB.saveTransaction(tx);
+    setTransactions(await studioDB.getTransactions());
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    await studioDB.deleteTransaction(id);
+    setTransactions(await studioDB.getTransactions());
+  };
+
+  const handleSaveFutureEquipment = async (eq: FutureEquipment) => {
+    await studioDB.saveFutureEquipment(eq);
+    setFutureEquipment(await studioDB.getFutureEquipment());
+  };
+
+  const handleDeleteFutureEquipment = async (id: string) => {
+    await studioDB.deleteFutureEquipment(id);
+    setFutureEquipment(await studioDB.getFutureEquipment());
+  };
+
+  const handleBuyEquipment = async (eq: FutureEquipment) => {
+    // 1. Mark equipment as Comprado
+    const updatedEq: FutureEquipment = {
+      ...eq,
+      status: 'Comprado',
+      allocatedAmount: eq.targetPrice,
+    };
+    await studioDB.saveFutureEquipment(updatedEq);
+
+    // 2. Automatically register the expense transaction in studio account
+    const newTx: StudioTransaction = {
+      id: 'tx-buy-' + Date.now(),
+      type: 'expense',
+      category: 'equipment',
+      amount: eq.targetPrice,
+      currency: '€',
+      description: `Aquisição de Equipamento: ${eq.name} (${eq.brand || ''})`,
+      date: new Date().toISOString().split('T')[0],
+      equipmentId: eq.id,
+      notes: `Compra realizada com sucesso para o estúdio! Loja: ${eq.storeUrl || 'N/A'}`,
+    };
+    await studioDB.saveTransaction(newTx);
+
+    setFutureEquipment(await studioDB.getFutureEquipment());
+    setTransactions(await studioDB.getTransactions());
+    showToast(`Parabéns! ${eq.name} comprado e despesa registrada na conta do estúdio! 🎛️🎉`, 'success');
+  };
+
+  const handleAllocateToEquipment = async (eqId: string, amountToAdd: number) => {
+    const eq = futureEquipment.find((e) => e.id === eqId);
+    if (!eq) return;
+    const newAllocated = Math.max(0, (eq.allocatedAmount || 0) + amountToAdd);
+    const updatedEq: FutureEquipment = {
+      ...eq,
+      allocatedAmount: newAllocated,
+      status: newAllocated >= eq.targetPrice ? 'Pronto para Comprar' : 'Em Poupança',
+    };
+    await studioDB.saveFutureEquipment(updatedEq);
+    setFutureEquipment(await studioDB.getFutureEquipment());
+    showToast(`Alocado +${amountToAdd}€ para o cofre do equipamento "${eq.name}"! 💰`, 'success');
   };
 
   // Create new custom chain
@@ -459,6 +544,12 @@ function StudioApp() {
             plugins={plugins}
             instrumentals={instrumentals}
             journal={journal}
+            transactions={transactions}
+            futureEquipment={futureEquipment}
+            onOpenBudgetModal={(tab) => {
+              setCurrentPage('projects');
+              setSubFilter(tab || 'account');
+            }}
             onNavigate={handleNavigate}
             onQuickAction={handleQuickAction}
           />
@@ -495,9 +586,19 @@ function StudioApp() {
             chains={chains}
             subFilter={subFilter}
             selectedProjectId={selectedEntityId || undefined}
+            transactions={transactions}
+            futureEquipment={futureEquipment}
             onSelectProject={setSelectedEntityId}
             onSaveProject={handleSaveProject}
             onDeleteProject={handleDeleteProject}
+            onSaveArtist={handleSaveArtist}
+            onSaveSession={handleSaveSession}
+            onSaveTransaction={handleSaveTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
+            onSaveFutureEquipment={handleSaveFutureEquipment}
+            onDeleteFutureEquipment={handleDeleteFutureEquipment}
+            onBuyEquipment={handleBuyEquipment}
+            onAllocateToEquipment={handleAllocateToEquipment}
             onNavigate={handleNavigate}
           />
         )}
@@ -510,6 +611,11 @@ function StudioApp() {
             subFilter={subFilter}
             onSaveSession={handleSaveSession}
             onDeleteSession={handleDeleteSession}
+            onSaveProject={handleSaveProject}
+            onNavigateToProject={(projId) => {
+              setCurrentPage('projects');
+              setSelectedEntityId(projId);
+            }}
           />
         )}
 
@@ -533,9 +639,15 @@ function StudioApp() {
         {currentPage === 'artists' && (
           <ArtistsPage
             artists={artists}
+            projects={projects}
             subFilter={subFilter}
             onSaveArtist={handleSaveArtist}
             onDeleteArtist={handleDeleteArtist}
+            onSaveProject={handleSaveProject}
+            onNavigateToProject={(projId) => {
+              setCurrentPage('projects');
+              setSelectedEntityId(projId);
+            }}
           />
         )}
 
